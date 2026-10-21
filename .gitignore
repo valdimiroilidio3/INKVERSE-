@@ -17,3 +17,6 @@ tools/assets/*.npz
 
 # keep the base mesh: it is the CC0 input, referenced by ASSETS.md
 !tools/assets/base.obj
+
+# verification build output (separate distDir so it never touches the dev server)
+.next-build
