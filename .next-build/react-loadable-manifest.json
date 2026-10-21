@@ -1,0 +1,33 @@
+{
+  "components/site/HeroStage.tsx -> @/components/three/HeroViewer": {
+    "id": 4911,
+    "files": [
+      "static/chunks/bd904a5c.589bde7b692e844b.js",
+      "static/chunks/e49654ac.543b965219fd4cb2.js",
+      "static/chunks/b536a0f1.ddfe2ad38bd36eeb.js",
+      "static/chunks/278.bb8d43b63d8b5f6e.js",
+      "static/chunks/208.e6e5a968a315e7e2.js",
+      "static/chunks/192.036a4596ab0c5c90.js"
+    ]
+  },
+  "components/studio/StudioCanvas.tsx -> @/components/three/StudioScene": {
+    "id": 9545,
+    "files": [
+      "static/chunks/bd904a5c.589bde7b692e844b.js",
+      "static/chunks/e49654ac.543b965219fd4cb2.js",
+      "static/chunks/b536a0f1.ddfe2ad38bd36eeb.js",
+      "static/chunks/278.bb8d43b63d8b5f6e.js",
+      "static/chunks/750.021c07984828010b.js",
+      "static/chunks/208.e6e5a968a315e7e2.js",
+      "static/chunks/545.c16deb81186074b6.js"
+    ]
+  },
+  "node_modules/@react-three/drei/core/VideoTexture.js -> hls.js": {
+    "id": null,
+    "files": []
+  },
+  "node_modules/@react-three/drei/web/FaceLandmarker.js -> @mediapipe/tasks-vision": {
+    "id": null,
+    "files": []
+  }
+}

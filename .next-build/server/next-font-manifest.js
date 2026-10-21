@@ -1,0 +1,1 @@
+self.__NEXT_FONT_MANIFEST='{"pages":{},"app":{"/home/user/INKVERSE-/app/layout":["static/media/f5cb94a89b585f0b.p.woff2","static/media/e91e1ff17da97c42-s.p.woff2"]},"appUsingSizeAdjust":true,"pagesUsingSizeAdjust":false}';

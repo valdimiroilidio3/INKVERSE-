@@ -47,7 +47,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
-      <body className="min-h-dvh bg-ink-900 text-paper antialiased">
+      <body
+        className="min-h-dvh bg-ink-900 text-paper antialiased"
+        style={{ backgroundColor: '#080808', color: '#f5f5f2' }}
+      >
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:bg-acid focus:px-4 focus:py-2 focus:font-mono focus:text-xs focus:uppercase focus:tracking-widest focus:text-ink-950"

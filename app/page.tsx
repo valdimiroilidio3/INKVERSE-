@@ -4,6 +4,7 @@ import { ArrowDown, ArrowRight, ArrowUpRight, Boxes, Layers, MousePointerClick, 
 import { HeroStage } from '@/components/site/HeroStage';
 import { Marquee } from '@/components/site/Marquee';
 import { SectionHeading } from '@/components/site/SectionHeading';
+import { Reveal } from '@/components/site/Reveal';
 import { TattooCard } from '@/components/gallery/TattooCard';
 import { ButtonLink } from '@/components/ui/Button';
 import { Tag } from '@/components/ui/Tag';
@@ -41,7 +42,7 @@ export default function HomePage() {
   return (
     <>
       {/* ------------------------------------------------------------- hero */}
-      <section className="relative min-h-[92svh] overflow-hidden border-b border-white/8">
+      <section className="grain relative min-h-[92svh] overflow-hidden border-b border-white/8">
         <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_62%_20%,#1c1c1d_0%,#0b0b0c_46%,#060607_100%)]" />
         <div className="absolute inset-y-0 right-0 w-full lg:w-[62%]">
           <HeroStage poster="/editorial/hero-atlas.webp" />
@@ -148,7 +149,7 @@ export default function HomePage() {
           }
         />
 
-        <div className="mt-14 grid gap-px overflow-hidden border border-white/8 bg-white/8 md:grid-cols-3">
+        <Reveal className="mt-14 grid gap-px overflow-hidden border border-white/8 bg-white/8 md:grid-cols-3">
           {PRINCIPLES.map((principle) => (
             <div key={principle.index} className="group relative bg-ink-900 p-7 transition-colors duration-500 hover:bg-ink-850 md:p-9">
               <div className="flex items-center justify-between">
@@ -159,7 +160,7 @@ export default function HomePage() {
               <p className="mt-3 text-sm leading-relaxed text-mist">{principle.body}</p>
             </div>
           ))}
-        </div>
+        </Reveal>
       </section>
 
       {/* ------------------------------------------------------------ featured */}
@@ -177,7 +178,7 @@ export default function HomePage() {
             }
           />
 
-          <div className="mt-12 grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
+          <Reveal className="mt-12 grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
             {featured.map((design, index) => (
               <TattooCard
                 key={design.id}
@@ -187,14 +188,14 @@ export default function HomePage() {
                 variant={index === 0 ? 'feature' : 'grid'}
               />
             ))}
-          </div>
+          </Reveal>
         </div>
       </section>
 
       {/* ------------------------------------------------------------- studio */}
       <section className="page-max page-x py-24 md:py-32" aria-labelledby="studio-title">
         <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.05fr]">
-          <div>
+          <Reveal>
             <div className="flex items-center gap-3">
               <span className="font-mono text-[11px] tracking-[0.2em] text-acid">03</span>
               <span className="label-caps text-[10px]">The 3D studio</span>
@@ -234,9 +235,9 @@ export default function HomePage() {
               The editor is a visual simulation. A screenshot is a rendering of the 3D viewport — not a photograph of a
               healed tattoo.
             </p>
-          </div>
+          </Reveal>
 
-          <div className="relative">
+          <Reveal delay={120} className="relative">
             <div className="relative aspect-[4/5] overflow-hidden border border-white/10">
               <Image
                 src="/editorial/studio-chest.webp"
@@ -261,7 +262,54 @@ export default function HomePage() {
               <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-mist">Shader placement</p>
               <p className="mt-1 text-xs text-paper-dim">UV-space · follows curvature</p>
             </div>
+          </Reveal>
+        </div>
+      </section>
+
+
+      {/* ------------------------------------------------------ placement strip */}
+      <section className="border-t border-white/8 bg-ink-950" aria-labelledby="placement-title">
+        <div className="page-max page-x py-16 md:py-20">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-3">
+                <span className="font-mono text-[11px] tracking-[0.2em] text-acid">04a</span>
+                <span className="label-caps text-[10px]">Placement study</span>
+              </div>
+              <h2 id="placement-title" className="mt-4 font-serif text-3xl leading-tight text-paper md:text-4xl">
+                The same maths, four surfaces.
+              </h2>
+            </div>
+            <p className="max-w-sm text-[11px] leading-relaxed text-mist">
+              These frames are rendered offline from the exported GLB with the placement code in
+              <code className="mx-1 border border-white/10 bg-ink-900 px-1 py-0.5 font-mono text-[10px] text-paper-dim">lib/placement.ts</code>
+              — the same numbers the live viewport uses.
+            </p>
           </div>
+
+          <Reveal className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">
+            {[
+              { src: '/editorial/detail-chest.webp', label: 'Chest', meta: 'moth · 24 cm' },
+              { src: '/editorial/detail-arm.webp', label: 'Forearm', meta: 'rose · 19 cm' },
+              { src: '/editorial/studio-back.webp', label: 'Back', meta: 'serpent · 34 cm' },
+              { src: '/editorial/hero-iris.webp', label: 'Full body', meta: 'iris · composed' },
+            ].map((frame) => (
+              <figure key={frame.src} className="group relative aspect-[3/4] overflow-hidden border border-white/8 bg-ink-900">
+                <Image
+                  src={frame.src}
+                  alt={`${frame.label} — tattoo placement study`}
+                  fill
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                  className="object-cover transition-transform duration-[1100ms] ease-[var(--ease-out-expo)] group-hover:scale-[1.04]"
+                />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950/85 via-transparent to-transparent" />
+                <figcaption className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-3">
+                  <span className="font-serif text-lg leading-none text-paper">{frame.label}</span>
+                  <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-mist">{frame.meta}</span>
+                </figcaption>
+              </figure>
+            ))}
+          </Reveal>
         </div>
       </section>
 
@@ -274,7 +322,7 @@ export default function HomePage() {
             title={<span id="characters-title">Two bodies. One studio.</span>}
             description="Both characters are built from a licensed CC0 anatomical base mesh, morphed into an athletic studio build and mapped with a 17-zone tattoo surface. Nothing here is a mannequin stand-in."
           />
-          <div className="mt-12 grid gap-4 md:grid-cols-2">
+          <Reveal className="mt-12 grid gap-4 md:grid-cols-2">
             {CHARACTERS.map((character) => (
               <div key={character.id} className="group relative overflow-hidden border border-white/8 bg-ink-900">
                 <div className="relative aspect-[3/4]">
@@ -303,7 +351,7 @@ export default function HomePage() {
                 </div>
               </div>
             ))}
-          </div>
+          </Reveal>
         </div>
       </section>
 

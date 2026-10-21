@@ -2,7 +2,7 @@
 import json, math, os, struct, collections
 import numpy as np
 
-SRC = os.path.join(os.path.dirname(__file__), '..', 'base.obj')
+SRC = os.path.join(os.path.dirname(__file__), 'base.obj')
 SRC = os.path.abspath(SRC)
 YMIN = -8.1676
 HEIGHT_UNITS = 16.6589
@@ -122,27 +122,42 @@ def make_morph(kind):
 
         # ---- shoulders
         shoulderw=smoothstep(1.33,1.50,y)*(1-smoothstep(1.66,1.80,y))*smoothstep(0.04,0.16,np.abs(x))*(1-smoothstep(0.30,0.52,np.abs(x)))
-        x=x*(1+shoulderw*(0.075 if male else 0.005))
-        # ---- chest / pecs
-        chest=smoothstep(1.02,1.22,y)*(1-smoothstep(1.40,1.55,y))*smoothstep(-0.08,0.06,z)*(1-smoothstep(0.20,0.32,np.abs(x)))
-        z=z*(1+chest*(0.06 if male else 0.0))
+        x=x*(1+shoulderw*(0.075 if male else -0.030))
+        # ---- chest / pecs.  The figure faces -Z, so "front" means z < 0.
+        front = 1.0 - smoothstep(-0.075, 0.010, z)
+        back = smoothstep(0.0, 0.085, z)
+
+        chest=smoothstep(1.02,1.22,y)*(1-smoothstep(1.40,1.55,y))*front*(1-smoothstep(0.20,0.32,np.abs(x)))
+        z=z*(1+chest*(0.055 if male else 0.0))
         pec=chest*gauss(np.abs(x),0.088,0.045)*(1-smoothstep(1.28,1.42,y))
-        z=z+(0.022 if male else 0.0)*pec
-        # ---- breast (female) / flatten (male)
-        breast=gauss(y,1.335,0.075)*gauss(np.abs(x),0.078,0.045)*smoothstep(0.02,0.08,z)
+        z=z-(0.020 if male else 0.0)*pec
+        # ---- bust (female): two forward lobes on the front surface only
         if male:
-            z=z-0.045*breast
+            # a little upper-chest fullness, nothing else
+            pass
         else:
-            z=z+0.030*breast
+            lobe = gauss(np.abs(x), 0.070, 0.045)
+            bust = gauss(y, 1.320, 0.058) * lobe * front
+            # a little lower-pole fullness reads better in profile than a sphere
+            bust += 0.35 * gauss(y, 1.283, 0.034) * lobe * front
+            cast = gauss(y, 1.246, 0.022) * lobe * front
+            z = z - 0.050 * bust + 0.009 * cast
+            # ribcage narrows slightly, sternum sits a touch deeper
+            x = x * (1.0 - 0.030 * chest)
+            z = z + 0.008 * gauss(np.abs(x), 0.0, 0.028) * front * smoothstep(1.24, 1.36, y)
         # ---- waist
         waist=gauss(y,1.20,0.10)*(1-smoothstep(0.16,0.26,np.abs(x)))
         x=x*(1+waist*(0.03 if male else -0.055))
         z=z*(1+waist*(0.01 if male else -0.02))
-        # ---- hips / glutes
+        # ---- hips / glutes (glutes bulge towards +Z, the back of the figure)
         hips=gauss(y,1.02,0.10)*smoothstep(0.02,0.10,np.abs(x))
-        x=x*(1+hips*(-0.015 if male else 0.06))
-        glute=gauss(y,0.98,0.075)*smoothstep(0.0,0.08,-z)*smoothstep(0.02,0.10,np.abs(x))
-        z=z-glute*(0.005 if male else 0.035)
+        x=x*(1+hips*(-0.015 if male else 0.055))
+        glute=gauss(y,0.98,0.075)*back*smoothstep(0.02,0.10,np.abs(x))
+        z=z+glute*(0.004 if male else 0.030)
+        # write the torso shaping back into the vertex buffer before the leg pass,
+        # which operates on p directly
+        p[:,0], p[:,1], p[:,2] = x, y, z
+
         # ---- thighs
         thigh=1-smoothstep(0.02,0.09,np.minimum(seg_dist(p,J['hip_l'],J['knee_l'])[0],seg_dist(p,J['hip_r'],J['knee_r'])[0]))
         thigh*=smoothstep(0.55,0.85,y)
@@ -160,10 +175,10 @@ def make_morph(kind):
         z=z*(1+(headscale-1)*hw)
         # ---- neck
         neckw=smoothstep(1.50,1.60,y)*(1-smoothstep(1.66,1.75,y))*(1-smoothstep(0.09,0.14,np.abs(x)))
-        x=x*(1+neckw*(0.10 if male else -0.02)); z=z*(1+neckw*(0.04 if male else -0.01))
+        x=x*(1+neckw*(0.10 if male else -0.045)); z=z*(1+neckw*(0.04 if male else -0.02))
         # ---- jaw
         jaw=gauss(y,1.705,0.032)*smoothstep(-0.01,0.04,z)*(1-smoothstep(0.055,0.085,np.abs(x)))
-        x=x*(1+jaw*(0.05 if male else -0.02))
+        x=x*(1+jaw*(0.05 if male else -0.035))
         return np.stack([x,y,z],1)
     return morph
 

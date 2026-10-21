@@ -123,6 +123,18 @@ def classify(pos, kind):
         cap = (d < 0.088) & (np.sign(x) == sgn) & (y > sh[1] - 0.035)
         lab[cap] = ID_INDEX[f"shoulder-{side}"]
 
+    # The pelvic triangle sits on the front midline between the hip joints; the nearest-bone
+    # rule hands it to the thighs, which lets a thigh placement bleed onto the groin.
+    # Leave it explicitly unassigned (region 0) so no ink is ever drawn there.
+    groin = (
+        (np.abs(x) < 0.082)
+        & (y > 0.865)
+        & (y < 1.065)
+        & (z < 0.035)
+        & (np.abs(z) < 0.16)
+    )
+    lab[groin] = 0
+
     # neck belongs to the head region
     neck = (y > 1.585) & (y < 1.70) & (np.abs(x) < 0.12)
     lab[neck] = ID_INDEX["head"]
@@ -130,7 +142,7 @@ def classify(pos, kind):
     # anything still unassigned that sits high on the body falls back to the nearest torso zone
     rest = lab == 0
     lab[rest & (y > 1.27)] = ID_INDEX["chest"]
-    lab[rest & (y <= 1.27) & (y > 1.0)] = ID_INDEX["abdomen"]
+    lab[rest & (y <= 1.27) & (y > 1.0) & ~groin] = ID_INDEX["abdomen"]
     return lab
 
 

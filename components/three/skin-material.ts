@@ -99,7 +99,7 @@ float inkDensityAt(vec2 uv, int i) {
   vec2 tileOrigin = vec2(mod(tile, 4.0), floor(tile / 4.0)) * 0.25;
   // The atlas is uploaded with flipY = false, so texture coords run top-down in canvas
   // space while the design's q.y runs bottom-up. Mirror q.y inside the tile.
-  vec2 atlasUv = vec2(tileOrigin.x + q.x * 0.25, tileOrigin.y + 0.25 - q.y * 0.25);
+  vec2 atlasUv = vec2(tileOrigin.x + q.x * 0.25, 1.0 - tileOrigin.y - 0.25 + q.y * 0.25);
   return texture2D(uInkAtlas, atlasUv).r;
 }
 

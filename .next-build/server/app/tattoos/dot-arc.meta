@@ -1,0 +1,15 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/tattoos/layout,_N_T_/tattoos/[slug]/layout,_N_T_/tattoos/[slug]/page,_N_T_/tattoos/dot-arc"
+  },
+  "routeCache": {
+    "key": "/route-cache/APP_PAGE/9eeaba23ccbf4de34f073f93dccc74656131770c49978635618ebbf36f7e518f/$/tattoos/dot-arc",
+    "owner": {
+      "kind": "APP_PAGE",
+      "sourceRoute": "/tattoos/[slug]/page"
+    },
+    "isFallback": false
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/robots.txt/route": "/robots.txt",
+  "/sitemap.xml/route": "/sitemap.xml",
+  "/page": "/",
+  "/about/page": "/about",
+  "/explore/page": "/explore",
+  "/saved/page": "/saved",
+  "/studio/page": "/studio",
+  "/tattoos/[slug]/page": "/tattoos/[slug]"
+}

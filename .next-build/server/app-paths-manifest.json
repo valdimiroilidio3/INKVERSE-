@@ -1,0 +1,11 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/robots.txt/route": "app/robots.txt/route.js",
+  "/sitemap.xml/route": "app/sitemap.xml/route.js",
+  "/page": "app/page.js",
+  "/about/page": "app/about/page.js",
+  "/explore/page": "app/explore/page.js",
+  "/saved/page": "app/saved/page.js",
+  "/studio/page": "app/studio/page.js",
+  "/tattoos/[slug]/page": "app/tattoos/[slug]/page.js"
+}

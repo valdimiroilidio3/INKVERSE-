@@ -12,6 +12,7 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 REGIONS_PATH = os.path.join(ROOT, "public", "models", "regions.json")
+DATA_PATH = os.path.join(ROOT, "data", "regions.json")
 sys.path.insert(0, HERE)
 from bake_regions import classify, IDS, ID_INDEX  # noqa: E402
 
@@ -108,7 +109,10 @@ def main():
             meta[name]["slots"] = [s for s in meta[name]["slots"] if "uvPerMeter" in s]
 
     json.dump(payload, open(REGIONS_PATH, "w"), indent=1)
-    print("updated", REGIONS_PATH)
+    # the app imports the copy in data/ so the bundle never reaches into public/
+    os.makedirs(os.path.dirname(DATA_PATH), exist_ok=True)
+    json.dump(payload, open(DATA_PATH, "w"), indent=1)
+    print("updated", REGIONS_PATH, "and", DATA_PATH)
 
 
 if __name__ == "__main__":

@@ -352,9 +352,12 @@ export function StudioWorkspace() {
 
         <main className="min-h-0 p-3 md:p-4">
           <div className="flex items-center justify-between gap-3 pb-3">
-            <div className="flex items-baseline gap-2">
-              <h1 className="font-serif text-2xl leading-none text-paper md:text-3xl">{character.name}</h1>
-              <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-mist">3D studio</span>
+            <div className="min-w-0">
+              <div className="flex items-baseline gap-2">
+                <h1 className="font-serif text-2xl leading-none text-paper md:text-3xl">{character.name}</h1>
+                <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-mist">3D studio</span>
+              </div>
+              <AppliedSummary tattoos={tattoos} characterId={characterId} className="mt-1.5 hidden sm:block" />
             </div>
             <div className="flex items-center gap-2">
               <Tag tone="dark">{tattoos.length.toString().padStart(2, '0')} / 08 layers</Tag>
@@ -545,14 +548,22 @@ export function StudioWorkspace() {
   );
 }
 
-export function AppliedSummary({ tattoos, characterId }: { tattoos: AppliedTattoo[]; characterId: CharacterModel['id'] }) {
+export function AppliedSummary({
+  tattoos,
+  characterId,
+  className,
+}: {
+  tattoos: AppliedTattoo[];
+  characterId: CharacterModel['id'];
+  className?: string;
+}) {
   const region = tattoos[0] ? getRegion(characterId, tattoos[0].bodyRegion) : undefined;
   const slot = primarySlot(region);
   if (!tattoos[0] || !slot) return null;
   const design = getDesign(tattoos[0].designId);
   if (!design) return null;
   return (
-    <div className={cn('text-[10px] uppercase tracking-[0.12em] text-mist')}>
+    <div className={cn('font-mono text-[9px] uppercase tracking-[0.14em] text-mist', className)}>
       {formatPlacementSize(design.defaultSize)} · {REGION_LABELS[tattoos[0].bodyRegion]}
     </div>
   );
