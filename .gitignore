@@ -1,0 +1,19 @@
+node_modules
+.next
+out
+build
+dist
+coverage
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store
+.env*.local
+.vercel
+
+# Python asset pipeline scratch (regenerable, large)
+tools/assets/__pycache__/
+tools/assets/*.npy
+tools/assets/*.npz
+
+# keep the base mesh: it is the CC0 input, referenced by ASSETS.md
+!tools/assets/base.obj

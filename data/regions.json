@@ -1,0 +1,1890 @@
+{
+ "maskSize": 1024,
+ "regions": [
+  {
+   "id": "head",
+   "label": "Head & neck",
+   "group": "Head & neck",
+   "side": "center",
+   "index": 1
+  },
+  {
+   "id": "chest",
+   "label": "Chest",
+   "group": "Chest",
+   "side": "center",
+   "index": 2
+  },
+  {
+   "id": "abdomen",
+   "label": "Abdomen",
+   "group": "Abdomen",
+   "side": "center",
+   "index": 3
+  },
+  {
+   "id": "upper-back",
+   "label": "Upper back",
+   "group": "Upper back",
+   "side": "center",
+   "index": 4
+  },
+  {
+   "id": "lower-back",
+   "label": "Lower back",
+   "group": "Lower back",
+   "side": "center",
+   "index": 5
+  },
+  {
+   "id": "shoulder-l",
+   "label": "Left shoulder",
+   "group": "Shoulders",
+   "side": "left",
+   "index": 6
+  },
+  {
+   "id": "shoulder-r",
+   "label": "Right shoulder",
+   "group": "Shoulders",
+   "side": "right",
+   "index": 7
+  },
+  {
+   "id": "arm-l",
+   "label": "Left upper arm",
+   "group": "Upper arms",
+   "side": "left",
+   "index": 8
+  },
+  {
+   "id": "arm-r",
+   "label": "Right upper arm",
+   "group": "Upper arms",
+   "side": "right",
+   "index": 9
+  },
+  {
+   "id": "forearm-l",
+   "label": "Left forearm",
+   "group": "Forearms",
+   "side": "left",
+   "index": 10
+  },
+  {
+   "id": "forearm-r",
+   "label": "Right forearm",
+   "group": "Forearms",
+   "side": "right",
+   "index": 11
+  },
+  {
+   "id": "hand-l",
+   "label": "Left hand",
+   "group": "Hands",
+   "side": "left",
+   "index": 12
+  },
+  {
+   "id": "hand-r",
+   "label": "Right hand",
+   "group": "Hands",
+   "side": "right",
+   "index": 13
+  },
+  {
+   "id": "thigh-l",
+   "label": "Left thigh",
+   "group": "Thighs",
+   "side": "left",
+   "index": 14
+  },
+  {
+   "id": "thigh-r",
+   "label": "Right thigh",
+   "group": "Thighs",
+   "side": "right",
+   "index": 15
+  },
+  {
+   "id": "leg-l",
+   "label": "Left calf",
+   "group": "Lower legs",
+   "side": "left",
+   "index": 16
+  },
+  {
+   "id": "leg-r",
+   "label": "Right calf",
+   "group": "Lower legs",
+   "side": "right",
+   "index": 17
+  }
+ ],
+ "characters": {
+  "male": {
+   "head": {
+    "uvBox": [
+     0.00973,
+     0.00871,
+     0.99418,
+     0.97761
+    ],
+    "uvPixels": [
+     12,
+     27,
+     1015,
+     1010
+    ],
+    "physical": [
+     0.2049,
+     0.3885,
+     0.2449
+    ],
+    "vertices": 4671,
+    "slots": [
+     {
+      "uvBox": [
+       0.64125,
+       0.1487,
+       0.99352,
+       0.81763
+      ],
+      "physical": [
+       0.1939,
+       0.2503,
+       0.2275
+      ],
+      "faces": 6232,
+      "uvPerMeter": 0.86903,
+      "uvPerMeterX": 0.9028,
+      "uvPerMeterY": 0.83525,
+      "areaM2": 0.13996,
+      "boxMeters": [
+       0.3902,
+       0.8009
+      ]
+     },
+     {
+      "uvBox": [
+       0.75763,
+       0.01186,
+       0.92374,
+       0.13644
+      ],
+      "physical": [
+       0.0876,
+       0.0818,
+       0.1077
+      ],
+      "faces": 796,
+      "uvPerMeter": 0.88208,
+      "uvPerMeterX": 0.88035,
+      "uvPerMeterY": 0.88382,
+      "areaM2": 0.02712,
+      "boxMeters": [
+       0.1887,
+       0.141
+      ]
+     },
+     {
+      "uvBox": [
+       0.21494,
+       0.77926,
+       0.54396,
+       0.97386
+      ],
+      "physical": [
+       0.2374,
+       0.206,
+       0.2001
+      ],
+      "faces": 746,
+      "uvPerMeter": 0.7098,
+      "uvPerMeterX": 0.69189,
+      "uvPerMeterY": 0.7277,
+      "areaM2": 0.0778,
+      "boxMeters": [
+       0.4755,
+       0.2674
+      ]
+     },
+     {
+      "uvBox": [
+       0.01181,
+       0.54739,
+       0.07682,
+       0.63286
+      ],
+      "physical": [
+       0.0363,
+       0.0339,
+       0.0313
+      ],
+      "faces": 586,
+      "uvPerMeter": 0.51097,
+      "uvPerMeterX": 0.50827,
+      "uvPerMeterY": 0.51368,
+      "areaM2": 0.00351,
+      "boxMeters": [
+       0.1279,
+       0.1664
+      ]
+     },
+     {
+      "uvBox": [
+       0.08614,
+       0.54739,
+       0.15116,
+       0.63286
+      ],
+      "physical": [
+       0.0363,
+       0.0339,
+       0.0313
+      ],
+      "faces": 586,
+      "uvPerMeter": 0.51097,
+      "uvPerMeterX": 0.50827,
+      "uvPerMeterY": 0.51368,
+      "areaM2": 0.00351,
+      "boxMeters": [
+       0.1279,
+       0.1664
+      ]
+     }
+    ]
+   },
+   "chest": {
+    "uvBox": [
+     0.18862,
+     0.63041,
+     0.57189,
+     0.80361
+    ],
+    "uvPixels": [
+     195,
+     205,
+     583,
+     374
+    ],
+    "physical": [
+     0.2856,
+     0.1989,
+     0.1794
+    ],
+    "vertices": 336,
+    "slots": [
+     {
+      "uvBox": [
+       0.19664,
+       0.63305,
+       0.56442,
+       0.79193
+      ],
+      "physical": [
+       0.2971,
+       0.2276,
+       0.1919
+      ],
+      "faces": 672,
+      "uvPerMeter": 0.59647,
+      "uvPerMeterX": 0.59618,
+      "uvPerMeterY": 0.59676,
+      "areaM2": 0.07139,
+      "boxMeters": [
+       0.6169,
+       0.2662
+      ]
+     }
+    ]
+   },
+   "abdomen": {
+    "uvBox": [
+     0.19155,
+     0.43491,
+     0.56896,
+     0.6648
+    ],
+    "uvPixels": [
+     198,
+     347,
+     580,
+     574
+    ],
+    "physical": [
+     0.3317,
+     0.342,
+     0.1748
+    ],
+    "vertices": 266,
+    "slots": [
+     {
+      "uvBox": [
+       0.1977,
+       0.43797,
+       0.56336,
+       0.66133
+      ],
+      "physical": [
+       0.3523,
+       0.3916,
+       0.1987
+      ],
+      "faces": 535,
+      "uvPerMeter": 0.59375,
+      "uvPerMeterX": 0.60284,
+      "uvPerMeterY": 0.58465,
+      "areaM2": 0.1193,
+      "boxMeters": [
+       0.6066,
+       0.382
+      ]
+     }
+    ]
+   },
+   "upper-back": {
+    "uvBox": [
+     0.11823,
+     0.58447,
+     0.6413,
+     0.96392
+    ],
+    "uvPixels": [
+     123,
+     41,
+     654,
+     421
+    ],
+    "physical": [
+     0.2656,
+     0.2796,
+     0.0651
+    ],
+    "vertices": 214,
+    "slots": [
+     {
+      "uvBox": [
+       0.12048,
+       0.58744,
+       0.64058,
+       0.96032
+      ],
+      "physical": [
+       0.2796,
+       0.3104,
+       0.0792
+      ],
+      "faces": 372,
+      "uvPerMeter": 0.42546,
+      "uvPerMeterX": 0.4272,
+      "uvPerMeterY": 0.42372,
+      "areaM2": 0.06859,
+      "boxMeters": [
+       1.2175,
+       0.88
+      ]
+     }
+    ]
+   },
+   "lower-back": {
+    "uvBox": [
+     0.1241,
+     0.46228,
+     0.63641,
+     0.60224
+    ],
+    "uvPixels": [
+     129,
+     411,
+     649,
+     546
+    ],
+    "physical": [
+     0.2966,
+     0.2912,
+     0.1123
+    ],
+    "vertices": 184,
+    "slots": [
+     {
+      "uvBox": [
+       0.12561,
+       0.46501,
+       0.63159,
+       0.59798
+      ],
+      "physical": [
+       0.3072,
+       0.3284,
+       0.1177
+      ],
+      "faces": 341,
+      "uvPerMeter": 0.39743,
+      "uvPerMeterX": 0.40031,
+      "uvPerMeterY": 0.39456,
+      "areaM2": 0.07178,
+      "boxMeters": [
+       1.264,
+       0.337
+      ]
+     }
+    ]
+   },
+   "shoulder-l": {
+    "uvBox": [
+     0.47307,
+     0.76922,
+     0.57385,
+     0.91016
+    ],
+    "uvPixels": [
+     486,
+     96,
+     585,
+     232
+    ],
+    "physical": [
+     0.1452,
+     0.1078,
+     0.165
+    ],
+    "vertices": 64,
+    "slots": [
+     {
+      "uvBox": [
+       0.48248,
+       0.78158,
+       0.57318,
+       0.90004
+      ],
+      "physical": [
+       0.1718,
+       0.1161,
+       0.1681
+      ],
+      "faces": 126,
+      "uvPerMeter": 0.36611,
+      "uvPerMeterX": 0.36641,
+      "uvPerMeterY": 0.36582,
+      "areaM2": 0.03598,
+      "boxMeters": [
+       0.2475,
+       0.3238
+      ]
+     }
+    ]
+   },
+   "shoulder-r": {
+    "uvBox": [
+     0.18666,
+     0.76922,
+     0.28646,
+     0.91016
+    ],
+    "uvPixels": [
+     193,
+     96,
+     291,
+     232
+    ],
+    "physical": [
+     0.1452,
+     0.1078,
+     0.165
+    ],
+    "vertices": 64,
+    "slots": [
+     {
+      "uvBox": [
+       0.18788,
+       0.78158,
+       0.27858,
+       0.90004
+      ],
+      "physical": [
+       0.1718,
+       0.1161,
+       0.1681
+      ],
+      "faces": 126,
+      "uvPerMeter": 0.36612,
+      "uvPerMeterX": 0.36643,
+      "uvPerMeterY": 0.36581,
+      "areaM2": 0.03598,
+      "boxMeters": [
+       0.2475,
+       0.3238
+      ]
+     }
+    ]
+   },
+   "arm-l": {
+    "uvBox": [
+     0.42029,
+     0.66755,
+     0.66964,
+     0.93557
+    ],
+    "uvPixels": [
+     432,
+     70,
+     683,
+     336
+    ],
+    "physical": [
+     0.3224,
+     0.3062,
+     0.212
+    ],
+    "vertices": 388,
+    "slots": [
+     {
+      "uvBox": [
+       0.42193,
+       0.67077,
+       0.6685,
+       0.93177
+      ],
+      "physical": [
+       0.3584,
+       0.3268,
+       0.2191
+      ],
+      "faces": 747,
+      "uvPerMeter": 0.41568,
+      "uvPerMeterX": 0.42127,
+      "uvPerMeterY": 0.41008,
+      "areaM2": 0.12715,
+      "boxMeters": [
+       0.5853,
+       0.6365
+      ]
+     }
+    ]
+   },
+   "arm-r": {
+    "uvBox": [
+     0.09282,
+     0.66755,
+     0.34022,
+     0.93557
+    ],
+    "uvPixels": [
+     97,
+     70,
+     346,
+     336
+    ],
+    "physical": [
+     0.3224,
+     0.3062,
+     0.212
+    ],
+    "vertices": 388,
+    "slots": [
+     {
+      "uvBox": [
+       0.09256,
+       0.67077,
+       0.33913,
+       0.92338
+      ],
+      "physical": [
+       0.3584,
+       0.3268,
+       0.2191
+      ],
+      "faces": 745,
+      "uvPerMeter": 0.41568,
+      "uvPerMeterX": 0.42127,
+      "uvPerMeterY": 0.41008,
+      "areaM2": 0.12672,
+      "boxMeters": [
+       0.5853,
+       0.616
+      ]
+     }
+    ]
+   },
+   "forearm-l": {
+    "uvBox": [
+     0.58158,
+     0.11135,
+     0.75273,
+     0.87692
+    ],
+    "uvPixels": [
+     597,
+     130,
+     768,
+     905
+    ],
+    "physical": [
+     0.2081,
+     0.2054,
+     0.2437
+    ],
+    "vertices": 251,
+    "slots": [
+     {
+      "uvBox": [
+       0.65055,
+       0.76594,
+       0.75185,
+       0.87258
+      ],
+      "physical": [
+       0.219,
+       0.2058,
+       0.2663
+      ],
+      "faces": 431,
+      "uvPerMeter": 0.32232,
+      "uvPerMeterX": 0.32585,
+      "uvPerMeterY": 0.31879,
+      "areaM2": 0.06975,
+      "boxMeters": [
+       0.3109,
+       0.3345
+      ]
+     }
+    ]
+   },
+   "forearm-r": {
+    "uvBox": [
+     0.0068,
+     0.11232,
+     0.54159,
+     0.87692
+    ],
+    "uvPixels": [
+     9,
+     130,
+     552,
+     904
+    ],
+    "physical": [
+     0.2081,
+     0.2054,
+     0.2437
+    ],
+    "vertices": 251,
+    "slots": [
+     {
+      "uvBox": [
+       0.00921,
+       0.76594,
+       0.11051,
+       0.87258
+      ],
+      "physical": [
+       0.219,
+       0.2058,
+       0.2663
+      ],
+      "faces": 431,
+      "uvPerMeter": 0.32232,
+      "uvPerMeterX": 0.32585,
+      "uvPerMeterY": 0.31879,
+      "areaM2": 0.06975,
+      "boxMeters": [
+       0.3109,
+       0.3345
+      ]
+     }
+    ]
+   },
+   "hand-l": {
+    "uvBox": [
+     0.56789,
+     0.00773,
+     0.76446,
+     0.83978
+    ],
+    "uvPixels": [
+     583,
+     168,
+     780,
+     1011
+    ],
+    "physical": [
+     0.1409,
+     0.1089,
+     0.1455
+    ],
+    "vertices": 1806,
+    "slots": [
+     {
+      "uvBox": [
+       0.57027,
+       0.01105,
+       0.763,
+       0.19634
+      ],
+      "physical": [
+       0.1409,
+       0.1089,
+       0.15
+      ],
+      "faces": 3175,
+      "uvPerMeter": 0.52192,
+      "uvPerMeterX": 0.52212,
+      "uvPerMeterY": 0.52172,
+      "areaM2": 0.03737,
+      "boxMeters": [
+       0.3691,
+       0.3552
+      ]
+     }
+    ]
+   },
+   "hand-r": {
+    "uvBox": [
+     0.00778,
+     0.00871,
+     0.55527,
+     0.83978
+    ],
+    "uvPixels": [
+     10,
+     168,
+     566,
+     1010
+    ],
+    "physical": [
+     0.1409,
+     0.1089,
+     0.1455
+    ],
+    "vertices": 1806,
+    "slots": [
+     {
+      "uvBox": [
+       0.36141,
+       0.01154,
+       0.55414,
+       0.19683
+      ],
+      "physical": [
+       0.1409,
+       0.1089,
+       0.15
+      ],
+      "faces": 3175,
+      "uvPerMeter": 0.52192,
+      "uvPerMeterX": 0.52209,
+      "uvPerMeterY": 0.52175,
+      "areaM2": 0.03737,
+      "boxMeters": [
+       0.3692,
+       0.3551
+      ]
+     }
+    ]
+   },
+   "thigh-l": {
+    "uvBox": [
+     0.10846,
+     0.26091,
+     0.65303,
+     0.55532
+    ],
+    "uvPixels": [
+     113,
+     459,
+     666,
+     752
+    ],
+    "physical": [
+     0.2286,
+     0.6064,
+     0.2558
+    ],
+    "vertices": 436,
+    "slots": [
+     {
+      "uvBox": [
+       0.10872,
+       0.26328,
+       0.65234,
+       0.55143
+      ],
+      "physical": [
+       0.248,
+       0.65,
+       0.2646
+      ],
+      "faces": 828,
+      "uvPerMeter": 0.40565,
+      "uvPerMeterX": 0.40145,
+      "uvPerMeterY": 0.40985,
+      "areaM2": 0.29494,
+      "boxMeters": [
+       1.3541,
+       0.7031
+      ]
+     }
+    ]
+   },
+   "thigh-r": {
+    "uvBox": [
+     0.1065,
+     0.26091,
+     0.38128,
+     0.55532
+    ],
+    "uvPixels": [
+     111,
+     459,
+     388,
+     752
+    ],
+    "physical": [
+     0.2213,
+     0.6064,
+     0.2558
+    ],
+    "vertices": 422,
+    "slots": [
+     {
+      "uvBox": [
+       0.10872,
+       0.26328,
+       0.38053,
+       0.55143
+      ],
+      "physical": [
+       0.2329,
+       0.6502,
+       0.2646
+      ],
+      "faces": 810,
+      "uvPerMeter": 0.40548,
+      "uvPerMeterX": 0.40128,
+      "uvPerMeterY": 0.40968,
+      "areaM2": 0.2929,
+      "boxMeters": [
+       0.6774,
+       0.7033
+      ]
+     }
+    ]
+   },
+   "leg-l": {
+    "uvBox": [
+     0.21599,
+     0.10841,
+     0.63543,
+     0.31094
+    ],
+    "uvPixels": [
+     223,
+     709,
+     648,
+     908
+    ],
+    "physical": [
+     0.17,
+     0.492,
+     0.1639
+    ],
+    "vertices": 344,
+    "slots": [
+     {
+      "uvBox": [
+       0.48329,
+       0.13838,
+       0.63476,
+       0.30751
+      ],
+      "physical": [
+       0.1698,
+       0.4129,
+       0.1685
+      ],
+      "faces": 470,
+      "uvPerMeter": 0.37799,
+      "uvPerMeterX": 0.37771,
+      "uvPerMeterY": 0.37827,
+      "areaM2": 0.12946,
+      "boxMeters": [
+       0.401,
+       0.4471
+      ]
+     },
+     {
+      "uvBox": [
+       0.21758,
+       0.11447,
+       0.35836,
+       0.16929
+      ],
+      "physical": [
+       0.0794,
+       0.1145,
+       0.1116
+      ],
+      "faces": 146,
+      "uvPerMeter": 0.41417,
+      "uvPerMeterX": 0.41283,
+      "uvPerMeterY": 0.41551,
+      "areaM2": 0.01412,
+      "boxMeters": [
+       0.341,
+       0.1319
+      ]
+     }
+    ]
+   },
+   "leg-r": {
+    "uvBox": [
+     0.02928,
+     0.10744,
+     0.27864,
+     0.31094
+    ],
+    "uvPixels": [
+     32,
+     709,
+     283,
+     909
+    ],
+    "physical": [
+     0.17,
+     0.492,
+     0.1639
+    ],
+    "vertices": 344,
+    "slots": [
+     {
+      "uvBox": [
+       0.1263,
+       0.13838,
+       0.27777,
+       0.30751
+      ],
+      "physical": [
+       0.1698,
+       0.4129,
+       0.1685
+      ],
+      "faces": 470,
+      "uvPerMeter": 0.37815,
+      "uvPerMeterX": 0.37771,
+      "uvPerMeterY": 0.37859,
+      "areaM2": 0.12946,
+      "boxMeters": [
+       0.401,
+       0.4467
+      ]
+     },
+     {
+      "uvBox": [
+       0.03109,
+       0.11447,
+       0.17186,
+       0.16929
+      ],
+      "physical": [
+       0.0794,
+       0.1145,
+       0.1116
+      ],
+      "faces": 146,
+      "uvPerMeter": 0.41419,
+      "uvPerMeterX": 0.41287,
+      "uvPerMeterY": 0.41551,
+      "areaM2": 0.01412,
+      "boxMeters": [
+       0.341,
+       0.1319
+      ]
+     }
+    ]
+   }
+  },
+  "female": {
+   "head": {
+    "uvBox": [
+     0.00973,
+     0.00871,
+     0.99418,
+     0.97761
+    ],
+    "uvPixels": [
+     12,
+     27,
+     1015,
+     1010
+    ],
+    "physical": [
+     0.208,
+     0.3845,
+     0.2333
+    ],
+    "vertices": 4682,
+    "slots": [
+     {
+      "uvBox": [
+       0.64125,
+       0.1487,
+       0.99352,
+       0.81763
+      ],
+      "physical": [
+       0.1823,
+       0.2456,
+       0.2148
+      ],
+      "faces": 6232,
+      "uvPerMeter": 0.91267,
+      "uvPerMeterX": 0.92028,
+      "uvPerMeterY": 0.90505,
+      "areaM2": 0.12984,
+      "boxMeters": [
+       0.3828,
+       0.7391
+      ]
+     },
+     {
+      "uvBox": [
+       0.75763,
+       0.01186,
+       0.92374,
+       0.13644
+      ],
+      "physical": [
+       0.0753,
+       0.08,
+       0.1017
+      ],
+      "faces": 796,
+      "uvPerMeter": 0.96579,
+      "uvPerMeterX": 0.97073,
+      "uvPerMeterY": 0.96086,
+      "areaM2": 0.02311,
+      "boxMeters": [
+       0.1711,
+       0.1297
+      ]
+     },
+     {
+      "uvBox": [
+       0.21494,
+       0.77648,
+       0.54396,
+       0.97386
+      ],
+      "physical": [
+       0.2505,
+       0.2099,
+       0.1967
+      ],
+      "faces": 767,
+      "uvPerMeter": 0.72247,
+      "uvPerMeterX": 0.72334,
+      "uvPerMeterY": 0.7216,
+      "areaM2": 0.07851,
+      "boxMeters": [
+       0.4549,
+       0.2735
+      ]
+     },
+     {
+      "uvBox": [
+       0.01181,
+       0.54739,
+       0.07682,
+       0.63286
+      ],
+      "physical": [
+       0.0322,
+       0.0333,
+       0.0297
+      ],
+      "faces": 586,
+      "uvPerMeter": 0.5358,
+      "uvPerMeterX": 0.54137,
+      "uvPerMeterY": 0.53022,
+      "areaM2": 0.00312,
+      "boxMeters": [
+       0.1201,
+       0.1612
+      ]
+     },
+     {
+      "uvBox": [
+       0.08614,
+       0.54739,
+       0.15116,
+       0.63286
+      ],
+      "physical": [
+       0.0322,
+       0.0333,
+       0.0297
+      ],
+      "faces": 586,
+      "uvPerMeter": 0.5358,
+      "uvPerMeterX": 0.54137,
+      "uvPerMeterY": 0.53022,
+      "areaM2": 0.00312,
+      "boxMeters": [
+       0.1201,
+       0.1612
+      ]
+     }
+    ]
+   },
+   "chest": {
+    "uvBox": [
+     0.18862,
+     0.61868,
+     0.57189,
+     0.79579
+    ],
+    "uvPixels": [
+     195,
+     213,
+     583,
+     386
+    ],
+    "physical": [
+     0.2856,
+     0.1987,
+     0.1794
+    ],
+    "vertices": 339,
+    "slots": [
+     {
+      "uvBox": [
+       0.19664,
+       0.62126,
+       0.56442,
+       0.79193
+      ],
+      "physical": [
+       0.2971,
+       0.2332,
+       0.1919
+      ],
+      "faces": 678,
+      "uvPerMeter": 0.59572,
+      "uvPerMeterX": 0.59631,
+      "uvPerMeterY": 0.59513,
+      "areaM2": 0.0737,
+      "boxMeters": [
+       0.6168,
+       0.2868
+      ]
+     }
+    ]
+   },
+   "abdomen": {
+    "uvBox": [
+     0.19155,
+     0.43491,
+     0.56896,
+     0.6648
+    ],
+    "uvPixels": [
+     198,
+     347,
+     580,
+     574
+    ],
+    "physical": [
+     0.3317,
+     0.3409,
+     0.1748
+    ],
+    "vertices": 262,
+    "slots": [
+     {
+      "uvBox": [
+       0.1977,
+       0.43797,
+       0.56336,
+       0.65707
+      ],
+      "physical": [
+       0.3523,
+       0.3903,
+       0.1987
+      ],
+      "faces": 527,
+      "uvPerMeter": 0.59269,
+      "uvPerMeterX": 0.60235,
+      "uvPerMeterY": 0.58302,
+      "areaM2": 0.11732,
+      "boxMeters": [
+       0.6071,
+       0.3758
+      ]
+     }
+    ]
+   },
+   "upper-back": {
+    "uvBox": [
+     0.11823,
+     0.58447,
+     0.6413,
+     0.96392
+    ],
+    "uvPixels": [
+     123,
+     41,
+     654,
+     421
+    ],
+    "physical": [
+     0.2656,
+     0.2724,
+     0.0651
+    ],
+    "vertices": 210,
+    "slots": [
+     {
+      "uvBox": [
+       0.12048,
+       0.58744,
+       0.64058,
+       0.96032
+      ],
+      "physical": [
+       0.2796,
+       0.3012,
+       0.0792
+      ],
+      "faces": 366,
+      "uvPerMeter": 0.42655,
+      "uvPerMeterX": 0.42795,
+      "uvPerMeterY": 0.42515,
+      "areaM2": 0.06773,
+      "boxMeters": [
+       1.2153,
+       0.8771
+      ]
+     }
+    ]
+   },
+   "lower-back": {
+    "uvBox": [
+     0.1241,
+     0.46228,
+     0.63641,
+     0.60224
+    ],
+    "uvPixels": [
+     129,
+     411,
+     649,
+     546
+    ],
+    "physical": [
+     0.3072,
+     0.292,
+     0.1123
+    ],
+    "vertices": 188,
+    "slots": [
+     {
+      "uvBox": [
+       0.12561,
+       0.46501,
+       0.63159,
+       0.59798
+      ],
+      "physical": [
+       0.3252,
+       0.3294,
+       0.1273
+      ],
+      "faces": 349,
+      "uvPerMeter": 0.39703,
+      "uvPerMeterX": 0.4003,
+      "uvPerMeterY": 0.39376,
+      "areaM2": 0.07477,
+      "boxMeters": [
+       1.264,
+       0.3377
+      ]
+     }
+    ]
+   },
+   "shoulder-l": {
+    "uvBox": [
+     0.48089,
+     0.75944,
+     0.57483,
+     0.91407
+    ],
+    "uvPixels": [
+     494,
+     92,
+     586,
+     242
+    ],
+    "physical": [
+     0.1466,
+     0.1106,
+     0.1559
+    ],
+    "vertices": 79,
+    "slots": [
+     {
+      "uvBox": [
+       0.48248,
+       0.77164,
+       0.57456,
+       0.90654
+      ],
+      "physical": [
+       0.1714,
+       0.1275,
+       0.1606
+      ],
+      "faces": 156,
+      "uvPerMeter": 0.3965,
+      "uvPerMeterX": 0.38857,
+      "uvPerMeterY": 0.40442,
+      "areaM2": 0.03723,
+      "boxMeters": [
+       0.237,
+       0.3336
+      ]
+     }
+    ]
+   },
+   "shoulder-r": {
+    "uvBox": [
+     0.18471,
+     0.75944,
+     0.27961,
+     0.91407
+    ],
+    "uvPixels": [
+     191,
+     92,
+     284,
+     242
+    ],
+    "physical": [
+     0.1466,
+     0.1106,
+     0.1559
+    ],
+    "vertices": 79,
+    "slots": [
+     {
+      "uvBox": [
+       0.1865,
+       0.77164,
+       0.27858,
+       0.90654
+      ],
+      "physical": [
+       0.1714,
+       0.1275,
+       0.1606
+      ],
+      "faces": 156,
+      "uvPerMeter": 0.3965,
+      "uvPerMeterX": 0.38859,
+      "uvPerMeterY": 0.40442,
+      "areaM2": 0.03723,
+      "boxMeters": [
+       0.237,
+       0.3336
+      ]
+     }
+    ]
+   },
+   "arm-l": {
+    "uvBox": [
+     0.42029,
+     0.66755,
+     0.66964,
+     0.93557
+    ],
+    "uvPixels": [
+     432,
+     70,
+     683,
+     336
+    ],
+    "physical": [
+     0.3108,
+     0.3004,
+     0.212
+    ],
+    "vertices": 372,
+    "slots": [
+     {
+      "uvBox": [
+       0.43114,
+       0.67077,
+       0.6685,
+       0.93177
+      ],
+      "physical": [
+       0.3459,
+       0.3177,
+       0.2191
+      ],
+      "faces": 715,
+      "uvPerMeter": 0.42876,
+      "uvPerMeterX": 0.43173,
+      "uvPerMeterY": 0.4258,
+      "areaM2": 0.11626,
+      "boxMeters": [
+       0.5498,
+       0.613
+      ]
+     }
+    ]
+   },
+   "arm-r": {
+    "uvBox": [
+     0.09282,
+     0.66755,
+     0.34022,
+     0.93557
+    ],
+    "uvPixels": [
+     97,
+     70,
+     346,
+     336
+    ],
+    "physical": [
+     0.3108,
+     0.3004,
+     0.212
+    ],
+    "vertices": 372,
+    "slots": [
+     {
+      "uvBox": [
+       0.09256,
+       0.67077,
+       0.32992,
+       0.92338
+      ],
+      "physical": [
+       0.3423,
+       0.3177,
+       0.2191
+      ],
+      "faces": 712,
+      "uvPerMeter": 0.42843,
+      "uvPerMeterX": 0.43113,
+      "uvPerMeterY": 0.42573,
+      "areaM2": 0.11558,
+      "boxMeters": [
+       0.5506,
+       0.5934
+      ]
+     }
+    ]
+   },
+   "forearm-l": {
+    "uvBox": [
+     0.5718,
+     0.11428,
+     0.75273,
+     0.87692
+    ],
+    "uvPixels": [
+     587,
+     130,
+     768,
+     902
+    ],
+    "physical": [
+     0.2043,
+     0.2064,
+     0.232
+    ],
+    "vertices": 253,
+    "slots": [
+     {
+      "uvBox": [
+       0.65055,
+       0.76594,
+       0.75185,
+       0.87258
+      ],
+      "physical": [
+       0.2101,
+       0.201,
+       0.2552
+      ],
+      "faces": 426,
+      "uvPerMeter": 0.33722,
+      "uvPerMeterX": 0.33881,
+      "uvPerMeterY": 0.33562,
+      "areaM2": 0.06373,
+      "boxMeters": [
+       0.299,
+       0.3177
+      ]
+     }
+    ]
+   },
+   "forearm-r": {
+    "uvBox": [
+     0.0068,
+     0.11526,
+     0.5455,
+     0.87692
+    ],
+    "uvPixels": [
+     9,
+     130,
+     556,
+     901
+    ],
+    "physical": [
+     0.2043,
+     0.2064,
+     0.232
+    ],
+    "vertices": 253,
+    "slots": [
+     {
+      "uvBox": [
+       0.00921,
+       0.76594,
+       0.11051,
+       0.87258
+      ],
+      "physical": [
+       0.2101,
+       0.201,
+       0.2552
+      ],
+      "faces": 426,
+      "uvPerMeter": 0.33722,
+      "uvPerMeterX": 0.33882,
+      "uvPerMeterY": 0.33562,
+      "areaM2": 0.06373,
+      "boxMeters": [
+       0.299,
+       0.3177
+      ]
+     }
+    ]
+   },
+   "hand-l": {
+    "uvBox": [
+     0.56789,
+     0.00773,
+     0.76446,
+     0.83978
+    ],
+    "uvPixels": [
+     583,
+     168,
+     780,
+     1011
+    ],
+    "physical": [
+     0.1261,
+     0.118,
+     0.1426
+    ],
+    "vertices": 1802,
+    "slots": [
+     {
+      "uvBox": [
+       0.57027,
+       0.01105,
+       0.763,
+       0.19634
+      ],
+      "physical": [
+       0.1261,
+       0.118,
+       0.1508
+      ],
+      "faces": 3166,
+      "uvPerMeter": 0.52185,
+      "uvPerMeterX": 0.52216,
+      "uvPerMeterY": 0.52154,
+      "areaM2": 0.03621,
+      "boxMeters": [
+       0.3691,
+       0.3553
+      ]
+     }
+    ]
+   },
+   "hand-r": {
+    "uvBox": [
+     0.00778,
+     0.00871,
+     0.55527,
+     0.83978
+    ],
+    "uvPixels": [
+     10,
+     168,
+     566,
+     1010
+    ],
+    "physical": [
+     0.1261,
+     0.118,
+     0.1426
+    ],
+    "vertices": 1802,
+    "slots": [
+     {
+      "uvBox": [
+       0.36141,
+       0.01154,
+       0.55414,
+       0.19683
+      ],
+      "physical": [
+       0.1261,
+       0.118,
+       0.1508
+      ],
+      "faces": 3166,
+      "uvPerMeter": 0.52189,
+      "uvPerMeterX": 0.52222,
+      "uvPerMeterY": 0.52155,
+      "areaM2": 0.03621,
+      "boxMeters": [
+       0.3691,
+       0.3553
+      ]
+     }
+    ]
+   },
+   "thigh-l": {
+    "uvBox": [
+     0.10846,
+     0.26091,
+     0.65303,
+     0.55532
+    ],
+    "uvPixels": [
+     113,
+     459,
+     666,
+     752
+    ],
+    "physical": [
+     0.2273,
+     0.6122,
+     0.2553
+    ],
+    "vertices": 435,
+    "slots": [
+     {
+      "uvBox": [
+       0.10872,
+       0.26328,
+       0.65234,
+       0.55143
+      ],
+      "physical": [
+       0.2467,
+       0.6562,
+       0.2646
+      ],
+      "faces": 826,
+      "uvPerMeter": 0.40832,
+      "uvPerMeterX": 0.40817,
+      "uvPerMeterY": 0.40847,
+      "areaM2": 0.29191,
+      "boxMeters": [
+       1.3318,
+       0.7054
+      ]
+     }
+    ]
+   },
+   "thigh-r": {
+    "uvBox": [
+     0.1065,
+     0.26091,
+     0.38128,
+     0.55532
+    ],
+    "uvPixels": [
+     111,
+     459,
+     388,
+     752
+    ],
+    "physical": [
+     0.22,
+     0.6122,
+     0.2553
+    ],
+    "vertices": 421,
+    "slots": [
+     {
+      "uvBox": [
+       0.10872,
+       0.26328,
+       0.38053,
+       0.55143
+      ],
+      "physical": [
+       0.2316,
+       0.6562,
+       0.2646
+      ],
+      "faces": 808,
+      "uvPerMeter": 0.4082,
+      "uvPerMeterX": 0.408,
+      "uvPerMeterY": 0.4084,
+      "areaM2": 0.28986,
+      "boxMeters": [
+       0.6662,
+       0.7056
+      ]
+     }
+    ]
+   },
+   "leg-l": {
+    "uvBox": [
+     0.21599,
+     0.10841,
+     0.63543,
+     0.31094
+    ],
+    "uvPixels": [
+     223,
+     709,
+     648,
+     908
+    ],
+    "physical": [
+     0.1686,
+     0.4934,
+     0.162
+    ],
+    "vertices": 345,
+    "slots": [
+     {
+      "uvBox": [
+       0.48329,
+       0.13838,
+       0.63476,
+       0.30751
+      ],
+      "physical": [
+       0.1684,
+       0.4142,
+       0.1671
+      ],
+      "faces": 469,
+      "uvPerMeter": 0.37779,
+      "uvPerMeterX": 0.37833,
+      "uvPerMeterY": 0.37725,
+      "areaM2": 0.12897,
+      "boxMeters": [
+       0.4004,
+       0.4483
+      ]
+     },
+     {
+      "uvBox": [
+       0.21758,
+       0.11359,
+       0.35836,
+       0.16929
+      ],
+      "physical": [
+       0.0794,
+       0.1148,
+       0.1156
+      ],
+      "faces": 147,
+      "uvPerMeter": 0.41374,
+      "uvPerMeterX": 0.41201,
+      "uvPerMeterY": 0.41547,
+      "areaM2": 0.01421,
+      "boxMeters": [
+       0.3417,
+       0.1341
+      ]
+     }
+    ]
+   },
+   "leg-r": {
+    "uvBox": [
+     0.02928,
+     0.10744,
+     0.27864,
+     0.31094
+    ],
+    "uvPixels": [
+     32,
+     709,
+     283,
+     909
+    ],
+    "physical": [
+     0.1686,
+     0.4934,
+     0.162
+    ],
+    "vertices": 345,
+    "slots": [
+     {
+      "uvBox": [
+       0.1263,
+       0.13838,
+       0.27777,
+       0.30751
+      ],
+      "physical": [
+       0.1684,
+       0.4142,
+       0.1671
+      ],
+      "faces": 469,
+      "uvPerMeter": 0.37784,
+      "uvPerMeterX": 0.37829,
+      "uvPerMeterY": 0.3774,
+      "areaM2": 0.12897,
+      "boxMeters": [
+       0.4004,
+       0.4481
+      ]
+     },
+     {
+      "uvBox": [
+       0.03109,
+       0.11359,
+       0.17186,
+       0.16929
+      ],
+      "physical": [
+       0.0794,
+       0.1148,
+       0.1156
+      ],
+      "faces": 147,
+      "uvPerMeter": 0.41376,
+      "uvPerMeterX": 0.41206,
+      "uvPerMeterY": 0.41547,
+      "areaM2": 0.01421,
+      "boxMeters": [
+       0.3416,
+       0.1341
+      ]
+     }
+    ]
+   }
+  }
+ }
+}
