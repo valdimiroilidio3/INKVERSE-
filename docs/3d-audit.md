@@ -271,17 +271,18 @@ the id map, and centred on it. `tests/region-placement.test.ts` asserts that at 
 on the front view. A back piece (Tsuru → `upper-back`) was applied behind the body.
 Repeating the click stacked duplicate layers until the eight-layer budget ran out.
 
-*Fix:* `lib/staging.ts` chooses the zone and the camera together — the first
-recommended zone the opening view can show, otherwise the first usable zone with the
-camera that reveals it. A design already on the body is selected instead of duplicated.
-When the layer budget is full the studio says so instead of silently failing.
+*Fix:* `lib/staging.ts` applies the design to its first recommended zone — the
+placement its artist intended — and switches the camera to reveal it. Moving the
+camera is free and honest; substituting a different zone would not be. A design
+already on the body is selected instead of duplicated, and a full layer budget is
+reported instead of silently failing.
 
 ### Verified
 
 | Check | Result |
 | --- | --- |
 | `tsc --noEmit` | clean |
-| `vitest run` | **54/54** (7 files, incl. 5 new ink-atlas tests and 5 placement tests) |
+| `vitest run` | **62/62** (8 files: ink atlas, region placement, staging, scene, store, share, placement, catalogue) |
 | GLSL injection parse + ordering | 5/5 |
 | `anchor-probe` — every slot anchor on its own id | 46/46 |
 | `scene-audit` | 0 errors, 0 warnings |

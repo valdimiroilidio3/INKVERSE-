@@ -49,8 +49,9 @@ export interface StagingInput {
  * Decide what "Try in 3D" should do.
  *
  * 1. If the design is already on the body, point at it instead of stacking a twin.
- * 2. Otherwise prefer a recommended zone the opening camera can see, and fall
- *    back to the first recommended zone with the camera that reveals it.
+ * 2. Otherwise use the design's first recommended zone — that is the placement its
+ *    artist intended — and switch the camera to reveal it. Moving the camera is
+ *    free and honest; substituting a different zone is neither.
  * 3. Refuse honestly when the body or the layer budget cannot take it.
  */
 export function planStaging({ design, supportedRegions, tattoos, maxTattoos }: StagingInput): StagingPlan {
@@ -72,8 +73,7 @@ export function planStaging({ design, supportedRegions, tattoos, maxTattoos }: S
     return { status: 'full', regionId: null, view: 'front' };
   }
 
-  // A zone the visitor can see straight away beats an authoring preference.
-  const regionId = usable.find(isFrontFacing) ?? usable[0]!;
+  const regionId = usable[0]!;
   return { status: 'placed', regionId, view: regionView(regionId) };
 }
 
