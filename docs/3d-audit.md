@@ -334,17 +334,17 @@ piece is placed, the faces inside its square are collected, and their skin area 
 
 | zone | male | female | was (7f43fa0) m / f |
 |---|---|---|---|
-| head | 28.8 | 28.2 | 25.1 / 24.5 |
-| chest | 21.5 | 25.2 | 17.9 / 21.1 |
-| abdomen | 20.0 | 21.9 | 19.6 / 19.7 |
-| upper-back | **20.9** | **20.1** | 19.9 / 18.7 |
-| lower-back | 16.0 | 14.0 | 16.2 / 15.9 |
-| shoulder | 13.3 | 13.3–15.6 | 13.0 / 13.2 |
-| arm | 22.9 | 20.3 | 21.5 / 21.6 |
-| forearm | 20.1 | 19.7 | 19.9 / 20.0 |
+| head | 22.0 | 21.0 | 25.1 / 24.5 |
+| chest | 21.5 | 20.7 | 17.9 / 21.1 |
+| abdomen | 20.2 | 19.8 | 19.6 / 19.7 |
+| upper-back | **21.1** | **20.2** | 19.9 / 18.7 |
+| lower-back | 15.9 | 14.0 | 16.2 / 15.9 |
+| shoulder | 13.0–13.5 | 15.9–16.1 | 13.0 / 13.2 |
+| arm | 23.1 | 20.1 | 21.5 / 21.6 |
+| forearm | 20.4 | 19.3 | 19.9 / 20.0 |
 | hand | 8.5 | 8.5 | 7.7 / 7.8 |
-| thigh | 38.9 | 39.6 | 39.6 / 38.8 |
-| leg | 28.8 | 29.0 | 28.0 / 28.2 |
+| thigh | 39.1 | 39.7 | 39.6 / 38.8 |
+| leg | 28.7 | 28.7 | 28.0 / 28.2 |
 
 The back limit was never the chart. With the snake removed, `upper-back` is a 0.32 × 0.38 m
 rectangle **filled to 72 %** and still only fits a 20.9 cm square, because the zone's own
@@ -371,12 +371,19 @@ waistband masks ink, and `region_metrics.py` scores the *paintable* square.
    single empty texel on the corner of the best square dropped the reported piece by 20 %.
    Single-texel pinholes are closed before measuring, which is also physically right: a 2 mm
    speck in the gate is invisible on skin.
-3. **A per-height ellipse table shears the chart.** Following the body band by band looks more
+3. **One UV per vertex smeared faces across the atlas.** Ink UV used to be keyed by
+   (vertex, zone). A vertex on a seam belongs to two islands, so one of the two faces got the
+   other island's coordinate and was drawn as a streak — 385 head faces spanned up to 98× the
+   median edge, which is what painted a dark wedge on the sternum of the editorial render.
+   uv1 is now built **per face corner** and `expand()` splits on (vertex, zone, chart, uv), so
+   the invariant "uv1 is continuous inside every face" holds by construction; `ink_uv.py`
+   rejects any candidate chart whose solid faces exceed 8× the median edge.
+4. **A per-height ellipse table shears the chart.** Following the body band by band looks more
    accurate and is worse for artwork: the same angle maps to a different `u` at every height, so
    the upper back came out as a wedge whose inscribed square was 40 % smaller than its bounding
    box. One reference ellipse keeps `u` a pure function of angle; the residual scale drift is
    reported per zone as `scaleP05P95` instead of being hidden. The per-band variant is still
-   built as a candidate (it wins on the lower back) and the measurement decides.
+   built as a candidate and the measurement decides.
 
 ### Verified without a GPU
 

@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { createEyeMaterial, createEyeTexture, createSkinMaterial, type InkSlot, type SkinMaterialResult } from './skin-material';
 import { useSoftMask, useInkAtlas } from './assets';
 import { regionMaskUrl } from '@/lib/regions';
+import { CHARACTERS } from '@/lib/characters';
 import { getDesign } from '@/lib/tattoos';
 import { getRegions, primarySlot } from '@/lib/regions';
 import { shaderTransform } from '@/lib/placement';
@@ -277,7 +278,8 @@ export function CharacterModel({
 
 // Warm the cache for both characters and the shared skin maps so switching bodies
 // does not drop the stage to an empty frame.
-useGLTF.preload('/models/inkverse-male.glb');
-useGLTF.preload('/models/inkverse-female.glb');
+// Preload through the catalogue so the warm-up hits the *versioned* URL: an unversioned
+// preload would download the file twice and warm the wrong cache entry.
+for (const character of CHARACTERS) useGLTF.preload(character.modelUrl);
 useTexture.preload('/textures/skin-normal.webp');
 useTexture.preload('/textures/skin-roughness.webp');

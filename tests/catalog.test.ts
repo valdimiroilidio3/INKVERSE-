@@ -8,7 +8,10 @@ import { TATTOO_STYLES } from '@/lib/types';
 import { MAX_TATTOOS } from '@/lib/schemas';
 
 const ROOT = process.cwd();
-const exists = (publicPath: string) => fs.existsSync(path.join(ROOT, 'public', publicPath.replace(/^\//, '')));
+// URLs carry `?v=<asset version>` so the immutable cache cannot pair a stale GLB with
+// a fresh regions.json; the file on disk obviously has no query string.
+const exists = (publicPath: string) =>
+  fs.existsSync(path.join(ROOT, 'public', publicPath.replace(/^\//, '').split('?')[0]!));
 
 describe('tattoo catalogue', () => {
   it('has a unique id and slug for every design', () => {

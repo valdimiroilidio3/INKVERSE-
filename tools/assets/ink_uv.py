@@ -133,10 +133,13 @@ def torso_chart(points, ring, seam, taper=False):
         # of longitude covers a circumference that tends to zero. `taper` scales the
         # chart by the radius of the body of revolution at that height, which is the
         # sinusoidal projection a sphere wants. Cylinders (torso) do not need it.
-        yc = 0.5 * (float(points[:, 1].min()) + float(points[:, 1].max()))
-        yh = max(1e-3, 0.5 * (float(points[:, 1].max()) - float(points[:, 1].min())))
-        t = np.clip((points[:, 1] - yc) / yh, -1.0, 1.0)
-        rad = np.sqrt(np.maximum(0.06, 1.0 - t * t))
+        # Taper towards the crown only. The zone starts at the neck, which is a
+        # cylinder: tapering downwards too would crush it to 6 % of its width and
+        # wreck the chart's density (0.09x measured before this line changed).
+        y_lo, y_hi = float(points[:, 1].min()), float(points[:, 1].max())
+        y_eq = 0.5 * (y_lo + y_hi)
+        t = np.clip((points[:, 1] - y_eq) / max(y_hi - y_eq, 1e-3), 0.0, 1.0)
+        rad = np.sqrt(np.maximum(0.0, 1.0 - t * t))
         u = (u - 0.5 * arc[-1]) * rad + 0.5 * arc[-1]
     return u, points[:, 1].copy(), (a, c)
 
@@ -186,38 +189,74 @@ def torso_chart_banded(points, ring, seam, bands=14):
     return u, points[:, 1].copy(), (mid[2], mid[3])
 
 
-def chart_distortion(mapping, tris, fsel, pos):
+def chart_distortion(faces_idx, corners, tris, pos):
     """Local scale spread and anisotropy of a candidate chart, in metres.
 
-    A zone is advertised to the user in centimetres, so a chart whose density
-    swings across the zone would make the label a lie: the artwork is scaled by a
-    single `uvPerMeter`. Faces below 1 cm² are ignored (slivers make the Jacobian
-    meaningless).
+    A zone is advertised to the user in centimetres, so a chart whose density swings
+    across the zone would make the label a lie: the artwork is scaled by a single
+    `uvPerMeter`. Faces below 1 cm² are ignored (slivers make the Jacobian meaningless).
     """
-    idx = np.where(fsel)[0]
-    if not len(idx):
+    if not len(faces_idx):
         return 1.0, 1.0, 1.0
-    uv = np.zeros((len(idx), 3, 2))
-    for j, f in enumerate(idx):
-        for c in range(3):
-            uv[j, c] = mapping[int(tris[f, c])]
-    # per-corner points, with a local (0,1,2 / 3,4,5 / …) connectivity
-    local = np.arange(len(idx) * 3, dtype=np.int32).reshape(-1, 3)
-    pts = pos[tris[idx]].reshape(-1, 3)
-    ku, kv, ok, _ = face_scales(pts, uv.reshape(-1, 2), local)
-    a = pos[tris[idx][:, 0]]
-    b = pos[tris[idx][:, 1]]
-    c3 = pos[tris[idx][:, 2]]
-    area = 0.5 * np.linalg.norm(np.cross(b - a, c3 - a), axis=1)
-    keep = ok & (area > 1e-4) & np.isfinite(ku) & np.isfinite(kv)
+    pts = pos[tris[faces_idx]]                     # (n, 3, 3)
+    e1 = pts[:, 1] - pts[:, 0]
+    e2 = pts[:, 2] - pts[:, 0]
+    du1 = corners[:, 1, 0] - corners[:, 0, 0]
+    dv1 = corners[:, 1, 1] - corners[:, 0, 1]
+    du2 = corners[:, 2, 0] - corners[:, 0, 0]
+    dv2 = corners[:, 2, 1] - corners[:, 0, 1]
+    det = du1 * dv2 - du2 * dv1
+    ok = np.abs(det) > 1e-12
+    inv = np.zeros_like(det)
+    inv[ok] = 1.0 / det[ok]
+    Tu = (dv2[:, None] * e1 - dv1[:, None] * e2) * inv[:, None]
+    Tv = (-du2[:, None] * e1 + du1[:, None] * e2) * inv[:, None]
+    area = 0.5 * np.linalg.norm(np.cross(e1, e2), axis=1)
+    lu = np.linalg.norm(Tu, axis=1)
+    lv = np.linalg.norm(Tv, axis=1)
+    keep = ok & (area > 1e-4) & (lu > 1e-8) & (lv > 1e-8)
     if keep.sum() < 8:
         return 1.0, 1.0, 1.0
-    sc = np.sqrt(ku[keep] * kv[keep])
+    ku = 1.0 / lu[keep]
+    kv = 1.0 / lv[keep]
+    sc = np.sqrt(ku * kv)
     med = float(np.median(sc))
-    spread_lo = float(np.percentile(sc / med, 5))
-    spread_hi = float(np.percentile(sc / med, 95))
-    aniso = float(np.percentile(kv[keep] / np.maximum(ku[keep], 1e-9), 95))
-    return spread_lo, spread_hi, aniso
+    return (
+        float(np.percentile(sc / med, 5)),
+        float(np.percentile(sc / med, 95)),
+        float(np.percentile(np.maximum(kv, ku) / np.minimum(kv, ku), 95)),
+    )
+
+
+def fix_seam(corners, perimeter):
+    """Collapse faces that straddle a closed chart's branch cut.
+
+    A closed chart (the head) covers 360°, so the seam is inside the artwork and some
+    faces necessarily span it: their corners land at both ends of the perimeter and the
+    face is drawn as a streak across the atlas. Because uv1 is stored per corner, the
+    cut can be applied per face — the two majority corners keep the chart, the minority
+    one is pulled onto the nearest of them, giving a zero-width sliver on a line that is
+    behind the head. Returns the number of faces repaired.
+    """
+    if perimeter <= 0:
+        return 0
+    u = corners[..., 0].copy()
+    lo = u.min(axis=1)
+    hi = u.max(axis=1)
+    bad = (hi - lo) > 0.5 * perimeter
+    fixed = 0
+    for row in np.where(bad)[0]:
+        vals = u[row].copy()
+        order = np.argsort(vals)
+        # two corners on one side of the cut, one on the other
+        for c in (order[0], order[-1]):
+            others = [vals[k] for k in range(3) if k != c]
+            if abs(vals[c] - np.median(others)) > 0.5 * perimeter:
+                vals[c] = min(others, key=lambda o: abs(o - vals[c]))
+        u[row] = vals
+        fixed += 1
+    corners[..., 0] = u
+    return fixed
 
 
 # ----------------------------------------------------------------- island split
@@ -275,7 +314,10 @@ def pack_square(rects, spread=1.0, steps=40):
     best = None
     for k in np.linspace(0.75, 1.7, steps):
         placed, uw, uh = shelf_pack(rects, math.sqrt(total) * spread * float(k))
-        score = max(uw, uh) / max(min(uw, uh), 1e-9)
+        # The atlas is square and every zone shares one scale, so what matters is the
+        # long side of the packed cell, not its aspect: minimising the aspect packed the
+        # head's five islands into a 0.98 x 0.92 m cell for 0.22 m² of skin.
+        score = max(uw, uh)
         if best is None or score < best[0]:
             best = (score, placed, uw, uh)
     return best[1], best[2], best[3], total
@@ -340,23 +382,40 @@ def usable_square(uv_corners, metres_span, res=180):
 
 # ----------------------------------------------------------------- zone charts
 def island_layout(tris, fsel, verts, uv0, ku0, kv0, ok0):
-    """Authored islands, moved into metres and shelf-packed inside one cell."""
+    """Authored islands, moved into metres and shelf-packed inside one cell.
+
+    Returns per-face-corner UVs and a chart id per face, **not** one UV per vertex.
+    A 3D vertex can sit in two UV islands (a seam runs through it); keying the chart
+    by vertex would give both faces the same island and stretch one of them across the
+    atlas — which is how a black wedge ended up on the sternum of the editorial render.
+    Chart-level ids fix that and are what `expand()` splits on.
+    """
     use = fsel & ok0
     k = float(np.median(np.sqrt(ku0[use] * kv0[use]))) if use.any() else 1.0
     islands = split_islands(tris, fsel, verts, uv0)
+    faces_idx = np.where(fsel)[0]
+    face_to_island = {}
+    for i, faces in enumerate(islands):
+        for f in faces:
+            face_to_island[int(f)] = i
     island_uv, boxes = {}, {}
     for i, faces in enumerate(islands):
         vt = np.unique(tris[faces])
         sub = (uv0[vt] - uv0[vt].min(axis=0)) / max(k, 1e-6)
-        island_uv[i] = (vt, sub)
+        island_uv[i] = (vt, {int(vv): j for j, vv in enumerate(vt)}, sub)
         boxes[i] = (float(sub[:, 0].max()), float(sub[:, 1].max()))
     placed = pack_square(boxes, spread=1.05, steps=24)[0]
-    mapping = {}
-    for i, (vt, sub) in island_uv.items():
+    corners = np.zeros((len(faces_idx), 3, 2), dtype=np.float64)
+    chart_ids = np.zeros(len(faces_idx), dtype=np.int32)
+    for row, f in enumerate(faces_idx):
+        i = face_to_island[int(f)]
+        vt, pos_in, sub = island_uv[i]
         ox, oy = placed[i]
-        for j, vv in enumerate(vt):
-            mapping[int(vv)] = (float(sub[j, 0] + ox), float(sub[j, 1] + oy))
-    return mapping, len(islands), k
+        for c in range(3):
+            j = pos_in[int(tris[f, c])]
+            corners[row, c] = (sub[j, 0] + ox, sub[j, 1] + oy)
+        chart_ids[row] = i
+    return faces_idx, corners, chart_ids, len(islands), k
 
 
 def build_charts(kind, pos, uv0, tris, vlab):
@@ -393,9 +452,8 @@ def build_charts(kind, pos, uv0, tris, vlab):
         P = pos[verts]
         candidates = []
 
-        mapping, n_isl, k = island_layout(tris, fsel, verts, uv0, ku0, kv0, ok0)
-        candidates.append((mapping, f"packed islands x{n_isl} @ {k:.2f} uv/m", n_isl))
-
+        f_idx, corners, chart_ids, n_isl, k = island_layout(tris, fsel, verts, uv0, ku0, kv0, ok0)
+        candidates.append((f_idx, corners, chart_ids, f"packed islands x{n_isl} @ {k:.2f} uv/m", n_isl))
 
         if name in ELLIPTIC_ZONES:
             # theta = 0 at +X, 90° at +Z (the front). Front zones are cut at 270°
@@ -403,69 +461,118 @@ def build_charts(kind, pos, uv0, tris, vlab):
             # never crosses the artwork.
             seam = 1.5 * math.pi if name in SEAM_BACK else 0.5 * math.pi
             ring_pts = ring if name in TORSO_ZONES else P
-            variants = [(lambda p, r: torso_chart(p, r, seam), "fixed"),
-                        (lambda p, r: torso_chart_banded(p, r, seam), "banded")]
             if name == "head":
-                variants.append((lambda p, r: torso_chart(p, r, seam, taper=True), "tapered"))
+                # Closed surface: the pole is degenerate. With a non-tapered chart two
+                # vertices either side of the crown get atan2(0, 0) and land at opposite
+                # ends of the perimeter, stretching one face across the whole atlas --
+                # that painted a black wedge on the sternum of the editorial render.
+                # The tapered chart bounds the jump to 6 % of the chart.
+                variants = [(lambda p, r: torso_chart(p, r, seam, taper=True), "tapered")]
+            else:
+                variants = [(lambda p, r: torso_chart(p, r, seam), "fixed"),
+                            (lambda p, r: torso_chart_banded(p, r, seam), "banded")]
             for fn, tag in variants:
                 u, v, axes = fn(P, ring_pts)
-                mapping = {int(x): (float(uu), float(vv)) for x, uu, vv in zip(verts, u, v)}
-                candidates.append((mapping, f"ellipse unroll ({tag}) {axes[0]:.2f}x{axes[1]:.2f} m", 1))
+                m = {int(x): (float(uu), float(vv)) for x, uu, vv in zip(verts, u, v)}
+                cc = np.zeros((len(f_idx), 3, 2))
+                for row, f in enumerate(f_idx):
+                    for c in range(3):
+                        cc[row, c] = m[int(tris[f, c])]
+                candidates.append((f_idx, cc, np.zeros(len(f_idx), dtype=np.int32),
+                                   f"ellipse unroll ({tag}) {axes[0]:.2f}x{axes[1]:.2f} m", 1))
 
         scored = []
-        for mapping, label, islands in candidates:
-            corners = np.array([[mapping[int(vv)] for vv in tris[f]] for f in np.where(fsel)[0]])
+        for faces_idx, corners, chart_ids, label, islands in candidates:
+            corners = corners.copy()
+            if "unroll" in label:
+                perimeter = float(corners.reshape(-1, 2)[:, 0].max() - corners.reshape(-1, 2)[:, 0].min())
+                fix_seam(corners, perimeter)
             corners -= corners.reshape(-1, 2).min(axis=0)
             span = corners.reshape(-1, 2).max(axis=0)
-            lo, hi, aniso = chart_distortion(mapping, tris, fsel, pos)
-            scored.append((usable_square(corners, span), label, islands, mapping,
-                           float(span[0]), float(span[1]), lo, hi, aniso))
+            lo, hi, aniso = chart_distortion(faces_idx, corners, tris, pos)
+            # A chart with a single face spanning many times the median edge is a
+            # degenerate map, not a chart: it smears artwork across the atlas. Reject
+            # it however big its square looks.
+            tri_uv = corners.reshape(-1, 3, 2)
+            edges = np.linalg.norm(
+                np.stack([tri_uv[:, 0] - tri_uv[:, 1],
+                          tri_uv[:, 1] - tri_uv[:, 2],
+                          tri_uv[:, 2] - tri_uv[:, 0]], axis=1), axis=2).max(axis=1)
+            uv_area = 0.5 * np.abs(
+                (tri_uv[:, 1, 0] - tri_uv[:, 0, 0]) * (tri_uv[:, 2, 1] - tri_uv[:, 0, 1])
+                - (tri_uv[:, 2, 0] - tri_uv[:, 0, 0]) * (tri_uv[:, 1, 1] - tri_uv[:, 0, 1]))
+            # Seam repairs leave zero-area slivers behind. They rasterise to nothing, so
+            # they must not veto a chart; only faces that can actually paint are scored.
+            solid = uv_area > max(1e-9, 0.25 * float(np.median(uv_area[uv_area > 0])) if (uv_area > 0).any() else 1e-9)
+            if solid.sum() >= 8:
+                edges, uv_area = edges[solid], uv_area[solid]
+            med = float(np.median(edges)) if len(edges) else 0.0
+            stretch = float(edges.max() / max(med, 1e-9)) if med > 0 else 1e9
+            scored.append((usable_square(corners, span), label, islands, corners, chart_ids,
+                           float(span[0]), float(span[1]), lo, hi, stretch, aniso))
 
-        # Keep the layout that allows the biggest piece, but let a candidate whose
-        # cell is much smaller win if it is within 2 % of that size: a zone that
-        # wastes a 1.6 m cell for the same usable square would starve the atlas
-        # (the skin unwrap leaves the hands in huge, mostly-empty boxes).
-        # Capacity decides; honesty is handled downstream. `region_metrics.py`
-        # measures the density *at the placed square* and advertises that number, so
-        # a chart with uneven density cannot overstate centimetres -- it just reports
-        # a smaller piece. The distortion figures stay in the JSON as diagnostics.
-        scored.sort(key=lambda r: -r[0])
-        best_sq = scored[0][0]
-        near = [c for c in scored if c[0] >= best_sq * 0.98]
-        near.sort(key=lambda c: c[4] * c[5])
-        best, label, islands, mapping, w, h = near[0][:6]
-        vmap[name] = mapping
+        # Capacity decides; honesty is handled downstream: `region_metrics.py` measures
+        # the density *inside* the square and advertises that number, so an uneven chart
+        # cannot overstate centimetres — it just reports a smaller piece.
+        #
+        # Among layouts within 10 % of the best, prefer the one that wastes less atlas.
+        # That window is deliberate: every zone shares one atlas scale, so a cell that is
+        # 4× bigger than the skin it carries costs texel density on the whole body. The
+        # head's authored islands are exactly that (0.90 m² of cell for 0.22 m² of skin),
+        # and taking its unroll instead is worth ~8 % density everywhere for ~4 cm of
+        # head capacity that no catalogue design asks for.
+        sane = [c for c in scored if c[9] <= 8.0] or scored
+        sane.sort(key=lambda r: -r[0])
+        best_sq = sane[0][0]
+        # Never give up more than 25 % of the capacity to save atlas, but always take the
+        # cheaper chart when it is that close: every zone shares one atlas scale, so a
+        # cell that is several times bigger than the skin it carries taxes the density of
+        # the whole body. This is what makes the head take its unroll (0.22 m² of cell)
+        # instead of its authored islands (0.61 m²), while the chest keeps its island.
+        pool = [c for c in sane if c[0] >= best_sq * 0.75]
+        pool.sort(key=lambda c: (c[5] * c[6], -c[0]))
+        best, label, islands, corners, chart_ids, w, h = pool[0][:7]
+        vmap[name] = (f_idx, corners, chart_ids)
         stats[name] = {
             "kind": label,
             "islands": islands,
             "squareM": round(float(best), 3),
             "options": {lbl: round(float(sc), 3) for sc, lbl, *_ in scored},
-            "spread": [round(float(x), 3) for x in (near[0][6], near[0][7], near[0][8])],
+            "spread": [round(float(x), 3) for x in (pool[0][7], pool[0][8], pool[0][10])],
+            "maxEdgeRatio": round(float(pool[0][9]), 2),
         }
 
     return face_zone, vmap, stats
 
 
 def corner_uv1(tris, face_zone, vmap):
-    """uv1 per corner, from the chart of the zone the *face* belongs to."""
+    """uv1 per corner plus the chart id of every face.
+
+    The chart id is what `expand()` splits on: charts inside one zone can share a 3D
+    vertex (a seam), and without the split those vertices would take one chart's UV and
+    smear the other chart's faces across the atlas.
+    """
     uv1 = np.zeros((len(tris), 3, 2), dtype=np.float64)
-    for zone, mapping in vmap.items():
-        idx = ID_INDEX[zone]
-        fsel = np.where(face_zone == idx)[0]
-        for f in fsel:
-            for c in range(3):
-                uv1[f, c] = mapping[int(tris[f, c])]
-    return uv1
+    chart = np.zeros(len(tris), dtype=np.int32)
+    for faces, corners, chart_ids in vmap.values():
+        uv1[faces] = corners
+        chart[faces] = chart_ids
+    return uv1, chart
 
 
-def expand(tris, face_zone, uv1c, pos, nrm, uv0, vlab):
-    """Split vertices at zone boundaries so uv1 is continuous inside every face."""
+def expand(tris, face_zone, chart_of_face, uv1c, pos, nrm, uv0):
+    """Split vertices at zone *and chart* boundaries so uv1 is continuous per face."""
     key_to_new, new_index, order = {}, np.zeros((len(tris), 3), dtype=np.int32), []
     for f in range(len(tris)):
         z = int(face_zone[f])
+        ch = int(chart_of_face[f])
         for c in range(3):
             v = int(tris[f, c])
-            key = (v, z)
+            # Key on the corner's own uv1, not just (vertex, zone, chart): a seam
+            # repair gives the same 3D vertex two different u values in two faces, and
+            # reusing one of them would re-introduce the streak. Vertices that share a
+            # uv still merge, so this only duplicates along cuts.
+            key = (v, z, ch, round(float(uv1c[f, c, 0]), 6), round(float(uv1c[f, c, 1]), 6))
             j = key_to_new.get(key)
             if j is None:
                 j = len(order)
@@ -497,7 +604,7 @@ def main():
         vlab = classify(pos, kind)
 
         face_zone, vmap, stats = build_charts(kind, pos, uv0, tris, vlab)
-        uv1c = corner_uv1(tris, face_zone, vmap)
+        uv1c, chart_of_face = corner_uv1(tris, face_zone, vmap)
 
         # chart rectangles over every corner that uses them, so no corner overhangs
         rects_m = {}
@@ -517,7 +624,7 @@ def main():
             uv1c[fsel] += np.array([ox, oy])
         uv1c *= scale
 
-        pos2, nrm2, uv02, uv12, tris2, lab2 = expand(tris, face_zone, uv1c, pos, nrm, uv0, vlab)
+        pos2, nrm2, uv02, uv12, tris2, lab2 = expand(tris, face_zone, chart_of_face, uv1c, pos, nrm, uv0)
 
         # ---- measure what was produced, not what was intended
         ku, kv, ok, _ = face_scales(pos2.astype(np.float64), uv12, tris2)
@@ -572,7 +679,8 @@ def main():
                   f"  scale {r['scaleP05P95'][0]:.2f}–{r['scaleP05P95'][1]:.2f}"
                   f"  aniso {r['anisoP05P95'][0]:.2f}–{r['anisoP05P95'][1]:.2f}"
                   f"  cell {rects[name]['metres'][0]:.2f}×{rects[name]['metres'][1]:.2f} m"
-                  f"  [{stats[name]['spread'][0]:.2f}-{stats[name]['spread'][1]:.2f}/{stats[name]['spread'][2]:.2f}]")
+                  f"  [{stats[name]['spread'][0]:.2f}-{stats[name]['spread'][1]:.2f}/{stats[name]['spread'][2]:.2f}]"
+                  f"  edge×{stats[name]['maxEdgeRatio']:.1f}")
 
     with open(OUT, "w") as fh:
         json.dump(summary, fh, indent=1)

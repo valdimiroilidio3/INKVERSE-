@@ -1,5 +1,6 @@
 import regionsData from '@/data/regions.json';
 import type { CharacterModel, CharacterRegion, CharacterRegionSlot, RegionGroup } from './types';
+import { ASSET_VERSION } from './asset-version';
 
 interface RawSlot {
   uvBox: number[];
@@ -116,9 +117,13 @@ export function getRegion(
 
 /** Region mask path used for the 3D highlight. Male masks are the canonical set. */
 export function regionMaskUrl(regionId: string, characterId: CharacterModel['id']): string {
-  return characterId === 'male'
-    ? `/tattoos/masks/${regionId}.png`
-    : `/tattoos/masks/${regionId}-${characterId}.png`;
+  const path =
+    characterId === 'male'
+      ? `/tattoos/masks/${regionId}.png`
+      : `/tattoos/masks/${regionId}-${characterId}.png`;
+  // masks are baked in ink UV space, so they change with the UV set: never let the
+  // immutable cache pair a stale mask with a fresh GLB
+  return `${path}?v=${ASSET_VERSION}`;
 }
 
 /** Default region for the studio when nothing is selected. */
