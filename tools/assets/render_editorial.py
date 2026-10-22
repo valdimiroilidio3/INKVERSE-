@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 import math
 import os
+import re
 import sys
 
 import numpy as np
@@ -36,7 +37,7 @@ def load_slot(kind, region):
     return best, REGION_INDEX[region]
 
 
-def placement(slot, size_m, offset=(0.0, 0.0), rot=0.0):
+def placement(slot, size_m, offset=(0.0, 0.0), rot=0.0, label=""):
     u0, v0, u1, v1 = slot["uvBox"]
     bw, bh = u1 - u0, v1 - v0
     kx, ky = slot["uvPerMeterX"], slot["uvPerMeterY"]
@@ -60,6 +61,8 @@ def placement(slot, size_m, offset=(0.0, 0.0), rot=0.0):
     if fit < 1:
         shrink = min(shrink, fit)
         hx, hy = hx * fit, hy * fit
+    if shrink < 0.995:
+        print(f"  ! {label or slot.get('region', '?')}: {size_m * 100:.1f} cm clamped to {size_m * shrink * 100:.1f} cm (zone capacity)")
     hx, hy = hx * shrink, hy * shrink
     ex, ey = hx * c + hy * s, hx * s + hy * c
     # mirror lib/placement.ts: centre on the island interior, not the box centre
@@ -71,14 +74,28 @@ def placement(slot, size_m, offset=(0.0, 0.0), rot=0.0):
     return (cx, cy, hx, hy)
 
 
+def _paper_tone():
+    """Read PAPER_TONE_INK from lib/atlas.ts so the offline render cannot drift
+    from what the browser paints. Raises if the constant is renamed."""
+    src = open(os.path.join(ROOT, "lib", "atlas.ts")).read()
+    m = re.search(r"PAPER_TONE_INK\s*=\s*([0-9.]+)", src)
+    if not m:
+        raise SystemExit("PAPER_TONE_INK missing from lib/atlas.ts")
+    return float(m.group(1))
+
+
+PAPER_TONE_INK = _paper_tone()
+
+
 def load_density(path):
     img = Image.open(path).convert("RGBA")
     a = np.asarray(img).astype(np.float32) / 255.0
     alpha = a[..., 3:4]
-    # composite onto white paper, then invert: paper = no ink (mirrors lib/atlas.ts)
+    # composite the artwork onto its own paper tone, then invert: paper reads as a
+    # light ink wash, ink reads as ink (mirrors inkDensityFromPixel in lib/atlas.ts)
     rgb = a[..., :3] * alpha + (1.0 - alpha)
     lum = 0.2126 * rgb[..., 0] + 0.7152 * rgb[..., 1] + 0.0722 * rgb[..., 2]
-    return np.clip(1.0 - lum, 0, 1)
+    return np.clip(alpha[..., 0] * (1.0 - (1.0 - PAPER_TONE_INK) * lum), 0, 1)
 
 
 def sample(img, u, v):
@@ -92,6 +109,9 @@ def render(kind, tattoos, W=1200, H=1560, rot=180, elev=0, span=2.02, cy=0.95,
            bg_top="#141416", bg_bot="#08080a", fov_shift=0.0):
     d = np.load(os.path.join(HERE, f"{kind}.npz"))
     pos, nrm, uv, tris = d["pos"], d["nrm"], d["uv"], d["tris"]
+    # Two UV sets, exactly like the shader: skin and cloth sample TEXCOORD_0, ink
+    # samples TEXCOORD_1 (the per-zone chart atlas built by ink_uv.py).
+    uv_ink = d["uv1"] if "uv1" in d.files else uv
     skin = np.asarray(Image.open(os.path.join(ROOT, "public", "textures", f"skin-{kind}.webp")).convert("RGB")).astype(np.float32) / 255
     cloth_path = os.path.join(ROOT, "public", "textures", f"cloth-{kind}.webp")
     cloth = np.asarray(Image.open(cloth_path).convert("L")).astype(np.float32) / 255 if os.path.exists(cloth_path) else None
@@ -120,7 +140,7 @@ def render(kind, tattoos, W=1200, H=1560, rot=180, elev=0, span=2.02, cy=0.95,
     inks = []
     for t in tattoos:
         slot, rid = load_slot(kind, t["region"])
-        cx, cyy, hx, hy = placement(slot, t["size"], t.get("offset", (0, 0)), t.get("rot", 0))
+        cx, cyy, hx, hy = placement(slot, t["size"], t.get("offset", (0, 0)), t.get("rot", 0), label=t["id"])
         density = load_density(os.path.join(ROOT, "public", "tattoos", f"{t['id']}.png"))
         inks.append({"cx": cx, "cy": cyy, "hx": hx, "hy": hy, "rot": t.get("rot", 0), "op": t.get("opacity", 0.94), "density": density})
 
@@ -218,6 +238,10 @@ def render(kind, tattoos, W=1200, H=1560, rot=180, elev=0, span=2.02, cy=0.95,
             continue
         u0_, u1_, u2_ = w0[upd], w1[upd], w2[upd]
         uvs = u0_[:, None] * uv[a] + u1_[:, None] * uv[b] + u2_[:, None] * uv[c]
+        if uv_ink is uv:
+            uvs_ink = uvs
+        else:
+            uvs_ink = u0_[:, None] * uv_ink[a] + u1_[:, None] * uv_ink[b] + u2_[:, None] * uv_ink[c]
         n = u0_[:, None] * N[a] + u1_[:, None] * N[b] + u2_[:, None] * N[c]
         n /= np.linalg.norm(n, axis=1, keepdims=True) + 1e-9
         base = sample(skin, uvs[:, 0], uvs[:, 1])
@@ -233,8 +257,8 @@ def render(kind, tattoos, W=1200, H=1560, rot=180, elev=0, span=2.02, cy=0.95,
         for ink in inks:
             th = math.radians(ink["rot"])
             cc, ss = math.cos(th), math.sin(th)
-            px = uvs[:, 0] - ink["cx"]
-            py = uvs[:, 1] - ink["cy"]
+            px = uvs_ink[:, 0] - ink["cx"]
+            py = uvs_ink[:, 1] - ink["cy"]
             qx = (cc * px + ss * py) / (2 * ink["hx"]) + 0.5
             qy = (-ss * px + cc * py) / (2 * ink["hy"]) + 0.5
             inside = (qx >= 0) & (qx <= 1) & (qy >= 0) & (qy <= 1)
@@ -330,8 +354,10 @@ HERO_IRIS = [
     {"id": "sacred-grid", "region": "upper-back", "size": 0.3, "offset": (0, 0)},
 ]
 STUDIO_BACK = [
-    {"id": "dragon-serpent", "region": "upper-back", "size": 0.34, "offset": (0, 0.12)},
-    {"id": "ink-flow", "region": "lower-back", "size": 0.2, "offset": (-0.3, -0.1)},
+    # sizes are the zone capacities for the male body (regions.json), not the catalogue
+    # defaults: the editorial render must show what the studio can actually place
+    {"id": "kiku-wave", "region": "upper-back", "size": 0.19, "offset": (0, 0.06)},
+    {"id": "ink-flow", "region": "lower-back", "size": 0.15, "offset": (0, 0.02)},
     {"id": "hannya-vigil", "region": "arm-l", "size": 0.17, "offset": (0, 0.05)},
 ]
 

@@ -30,6 +30,42 @@ export function atlasUvFor(tile: number, qx: number, qy: number): [number, numbe
   return [(col + qx) / ATLAS_GRID, (row + (1 - qy)) / ATLAS_GRID];
 }
 
+
+/**
+ * Ink density of one artwork pixel.
+ *
+ * The catalogue is a two-tone silkscreen style drawn over the page surface: the
+ * drawings use near-black ink (`#0b0b0b`) *and* paper knockouts — white shapes that
+ * are meant to read as bare paper. On a dark surface that composition is the design;
+ * transcribed straight onto skin with `density = 1 − luminance` the knockouts become
+ * bare skin, which is anatomically right but erases 5 of the 28 motifs (mean opaque
+ * luminance 0.61–0.78: `lunar-moth`, `heart-anatomy`, `rose-noir`, `dragon-serpent`,
+ * `orchid-line` all but disappeared in the 3D render).
+ *
+ * So the knockout is mapped to a light ink wash instead of nothing: the tonal
+ * structure of the artwork survives (relative contrast is untouched, polarity is
+ * untouched, nothing is drawn outside the alpha silhouette) while every motif stays
+ * legible at catalogue sizes. Pure black stays pure black, transparent stays skin.
+ *
+ * The real fix is art direction, not shading: designs whose form depends on paper
+ * knockouts need stencil line work before they are offered as blackwork. Tracked in
+ * `docs/art-direction.md`; the gallery artwork is deliberately left untouched so what
+ * the catalogue shows is exactly what the artwork is.
+ */
+export const PAPER_TONE_INK = 0.4;
+
+export function inkDensityFromPixel(r: number, g: number, b: number, a: number): number {
+  if (a <= 0) return 0;
+  // Composite the artwork onto its own paper tone before measuring luminance:
+  // reading raw channels lets a transparent margin carry colour, which turns clean
+  // line work into speckle once it is sampled at skin scale.
+  const cr = r * a + 255 * (1 - a);
+  const cg = g * a + 255 * (1 - a);
+  const cb = b * a + 255 * (1 - a);
+  const lum = (0.2126 * cr + 0.7152 * cg + 0.0722 * cb) / 255;
+  return Math.max(0, Math.min(1, a * (1 - (1 - PAPER_TONE_INK) * lum)));
+}
+
 const cache = new Map<string, HTMLImageElement>();
 
 export function loadInkImage(url: string): Promise<HTMLImageElement> {
@@ -106,24 +142,7 @@ export function buildInkAtlas(
     const data = tctx.getImageData(0, 0, ATLAS_TILE, ATLAS_TILE);
     const px = data.data;
     for (let i = 0; i < px.length; i += 4) {
-      const a = px[i + 3]! / 255;
-      if (a <= 0) {
-        px[i] = 0;
-        px[i + 1] = 0;
-        px[i + 2] = 0;
-        px[i + 3] = 255;
-        continue;
-      }
-      // Composite the (premultiplied) artwork onto white paper before measuring
-      // luminance. Reading the raw channels lets the transparent margin of a design
-      // carry colour, which turns clean line work into speckle once it is sampled at
-      // skin scale.
-      const r = px[i]! * a + 255 * (1 - a);
-      const g = px[i + 1]! * a + 255 * (1 - a);
-      const b = px[i + 2]! * a + 255 * (1 - a);
-      const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-      // dark ink -> high density, paper -> 0
-      const density = Math.max(0, Math.min(1, 1 - lum));
+      const density = inkDensityFromPixel(px[i]!, px[i + 1]!, px[i + 2]!, px[i + 3]! / 255);
       const v = Math.round(density * 255);
       px[i] = v;
       px[i + 1] = v;
@@ -149,9 +168,7 @@ export async function designDensityUrl(url: string, size = 512): Promise<string>
   const data = ctx.getImageData(0, 0, size, size);
   const px = data.data;
   for (let i = 0; i < px.length; i += 4) {
-    const a = px[i + 3]! / 255;
-    const lum = (0.2126 * px[i]! + 0.7152 * px[i + 1]! + 0.0722 * px[i + 2]!) / 255;
-    const density = Math.max(0, Math.min(1, (1 - lum) * a));
+    const density = inkDensityFromPixel(px[i]!, px[i + 1]!, px[i + 2]!, px[i + 3]! / 255);
     px[i] = 20;
     px[i + 1] = 22;
     px[i + 2] = 26;
