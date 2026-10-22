@@ -4,6 +4,7 @@
 Run after bake_regions.py:  python3 tools/assets/region_metrics.py
 """
 import json
+import math
 import os
 import sys
 
@@ -215,6 +216,9 @@ def main():
         len_v = np.linalg.norm(Tv, axis=1)
         ku_face = np.where(len_u > 1e-8, 1.0 / len_u, np.nan)
         kv_face = np.where(len_v > 1e-8, 1.0 / len_v, np.nan)
+        area_uv = 0.5 * np.abs(
+            (ub[:, 0] - ua[:, 0]) * (uc[:, 1] - ua[:, 1]) - (uc[:, 0] - ua[:, 0]) * (ub[:, 1] - ua[:, 1])
+        )
 
         # The id map that ships with the app is the authority: it is exactly what the
         # shader samples, so anchors derived from it are guaranteed paintable.
@@ -291,14 +295,27 @@ def main():
                 if wide is not None and (square is None or wide[2] > square[2]):
                     square = wide
                 def local_density(sq, fallback=(ku, kv)):
+                    """Density actually inside the square, measured the way the probe does.
+
+                    The probe (tools/checks/ink-placement-probe.ts) rebuilds the placed
+                    square from region-ids + the ink UV set, sums the surface area and
+                    the UV area of the faces whose three corners are inside it, and
+                    compares sqrt(areaUv/area3) with this number. Measuring anything
+                    else -- the zone median, or a wider window -- made the advertised
+                    centimetres disagree with the ink on screen by up to 24 %.
+                    """
                     cu, cv, ch = sq
-                    ctr = uv[tris[fsel]].mean(axis=1)
-                    near = (np.abs(ctr[:, 0] - cu) <= ch * 0.85) & (np.abs(ctr[:, 1] - cv) <= ch * 0.85)
-                    if near.sum() >= 12:
-                        return (
-                            float(np.nanmedian(ku_face[fsel][near])),
-                            float(np.nanmedian(kv_face[fsel][near])),
-                        )
+                    tri = tris[fsel]
+                    corners = uv[tri]
+                    inside = np.all(
+                        (np.abs(corners[..., 0] - cu) <= ch) & (np.abs(corners[..., 1] - cv) <= ch), axis=1
+                    )
+                    if inside.sum() >= 3:
+                        a3 = float(area3[fsel][inside].sum())
+                        au = float(area_uv[fsel][inside].sum())
+                        if a3 > 1e-9 and au > 1e-12:
+                            k = math.sqrt(au / a3)
+                            return (k, k)
                     return fallback
 
                 if square is not None:

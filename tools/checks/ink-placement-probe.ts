@@ -16,7 +16,7 @@
  * shader consumes. Visual confirmation still needs a real WebGL context (see
  * docs/3d-audit.md §6).
  *
- * Run: npx tsx tools/checks/ink-placement-probe.ts
+ * Run: npx tsx tools/checks/ink-placement-probe.ts [male|female]
  */
 import fs from 'node:fs';
 import { computePlacement, shaderTransform } from '../../lib/placement';
@@ -66,7 +66,7 @@ function accessor(json: any, bin: Buffer, index: number) {
   return { data: out, count: acc.count, comps };
 }
 
-const kind = 'male';
+const kind = process.argv[2] === 'female' ? 'female' : 'male';
 const { json, bin } = readGlb(`public/models/inkverse-${kind}.glb`);
 const node = json.nodes.find((n: any) => n.name === 'Body');
 const prim = json.meshes[node.mesh].primitives[0];
@@ -86,7 +86,7 @@ for (let f = 0; f < faceRegions.length; f += 1) {
 const design = TATTOO_LIBRARY.find((d) => d.recommendedRegions.includes('upper-back')) ?? TATTOO_LIBRARY[0]!;
 let failures = 0;
 let warned = 0;
-console.log(`design "${design.name}" default size ${(design.defaultSize * 100).toFixed(0)} cm\n`);
+console.log(`[${kind}] design "${design.name}" default size ${(design.defaultSize * 100).toFixed(0)} cm\n`);
 console.log('zone          allowed   placed    faces   covered          density   verdict');
 
 for (const region of getRegions(kind)) {

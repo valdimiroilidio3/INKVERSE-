@@ -356,8 +356,9 @@ HERO_IRIS = [
 STUDIO_BACK = [
     # sizes are the zone capacities for the male body (regions.json), not the catalogue
     # defaults: the editorial render must show what the studio can actually place
-    {"id": "kiku-wave", "region": "upper-back", "size": 0.19, "offset": (0, 0.06)},
-    {"id": "ink-flow", "region": "lower-back", "size": 0.15, "offset": (0, 0.02)},
+    {"id": "kiku-wave", "region": "upper-back", "size": 0.21, "offset": (0, 0.04)},
+    # the garment waistband sits on the lower-back square, so a piece there reads as
+    # half-hidden; the back is shown with one piece until the garment is refit
     {"id": "hannya-vigil", "region": "arm-l", "size": 0.17, "offset": (0, 0.05)},
 ]
 

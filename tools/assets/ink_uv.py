@@ -60,6 +60,13 @@ OUT = os.path.join(HERE, "ink-uv.json")
 GUTTER_M = 0.012
 
 TORSO_ZONES = ("chest", "abdomen", "upper-back", "lower-back")
+# The head is the other zone the skin unwrap wastes: it is 5 islands inside a
+# 1.0 m² box for 0.22 m² of skin (22 % fill), and because every zone shares one
+# atlas scale that waste costs ~25 % of texel density on the *whole* body. A head
+# is close to an ellipsoid, so the same unroll applies: longitude arc × height.
+ELLIPTIC_ZONES = TORSO_ZONES + ("head",)
+SEAM_BACK = ("chest", "abdomen", "head")
+SEAM_FRONT = ("upper-back", "lower-back")
 ELLIPSE_SAMPLES = 720
 
 
@@ -86,24 +93,68 @@ def face_scales(pos, uv, tris):
 
 
 # ----------------------------------------------------------------- torso unroll
-def torso_chart(points, ring, seam):
+def torso_chart(points, ring, seam, taper=False):
     """Unroll a torso zone onto a plane with its true arc length.
 
     The cross-section is an ellipse, not a circle: at chest height the body is
     ~0.44 m wide but only ~0.21 m deep, so a circular chart would compress the
-    flanks by 2×. For each height band we fit the ellipse of the torso ring, then
-    integrate its perimeter to get metres of skin per angle. `seam` is the elliptic
-    angle of the branch cut; putting it opposite the zone keeps the cut outside the
-    artwork, so no triangle is ever split across the chart.
+    flanks by 2×. We fit **one** ellipse — the ring at the zone's mid height — and
+    integrate its perimeter, so u is arc length in metres and v is height.
 
-    Returns (u, v) in metres plus the semi-axes at the zone's mid height.
+    One ellipse for the whole zone, deliberately. A per-height table would follow
+    the body more closely but it maps the same angle to different u at different
+    heights, which shears the chart: the upper back came out as a wedge whose
+    largest inscribed square was 40 % smaller than its bounding box. A fixed
+    reference ellipse keeps u a pure function of angle, so the footprint fills its
+    rectangle; the price is a horizontal scale that drifts with height
+    (reported as `scaleP05P95`), not a shear.
+
+    `seam` is the elliptic angle of the branch cut, placed opposite the zone so the
+    cut — and the ±90° wrap of `atan2` — never crosses the artwork.
+    """
+    xs, ys, zs = ring[:, 0], ring[:, 1], ring[:, 2]
+    mid = 0.5 * (float(points[:, 1].min()) + float(points[:, 1].max()))
+    band = (ys >= mid - 0.04) & (ys <= mid + 0.04)
+    if band.sum() < 24:
+        band = np.ones_like(ys, dtype=bool)
+    x0 = 0.5 * (float(xs[band].min()) + float(xs[band].max()))
+    z0 = 0.5 * (float(zs[band].min()) + float(zs[band].max()))
+    a = max(1e-3, 0.5 * (float(xs[band].max()) - float(xs[band].min())))
+    c = max(1e-3, 0.5 * (float(zs[band].max()) - float(zs[band].min())))
+    phi = seam + np.arange(ELLIPSE_SAMPLES + 1) * (2 * np.pi / ELLIPSE_SAMPLES)
+    ds = np.sqrt((a * np.sin(phi)) ** 2 + (c * np.cos(phi)) ** 2) * (2 * np.pi / ELLIPSE_SAMPLES)
+    arc = np.concatenate([[0.0], np.cumsum(ds[:-1])])
+    theta = np.arctan2((points[:, 2] - z0) / c, (points[:, 0] - x0) / a)
+    frac = ((theta - seam) % (2 * np.pi)) / (2 * np.pi)
+    u = np.interp(frac * ELLIPSE_SAMPLES, np.arange(ELLIPSE_SAMPLES + 1), arc)
+    if taper:
+        # A closed lat-long chart (the head) has to shrink u towards the poles, or
+        # the crown is stretched into a smear: at the top of the skull the same 360°
+        # of longitude covers a circumference that tends to zero. `taper` scales the
+        # chart by the radius of the body of revolution at that height, which is the
+        # sinusoidal projection a sphere wants. Cylinders (torso) do not need it.
+        yc = 0.5 * (float(points[:, 1].min()) + float(points[:, 1].max()))
+        yh = max(1e-3, 0.5 * (float(points[:, 1].max()) - float(points[:, 1].min())))
+        t = np.clip((points[:, 1] - yc) / yh, -1.0, 1.0)
+        rad = np.sqrt(np.maximum(0.06, 1.0 - t * t))
+        u = (u - 0.5 * arc[-1]) * rad + 0.5 * arc[-1]
+    return u, points[:, 1].copy(), (a, c)
+
+
+def torso_chart_banded(points, ring, seam, bands=14):
+    """Same unroll, but with one ellipse fitted per height band.
+
+    Follows the body more closely than the fixed reference ellipse — and shears the
+    chart, because the same angle lands on a different arc length at each height.
+    Kept as a *candidate* only: it wins where the shear happens to help the
+    inscribed square (the lower back) and loses where it does not (the upper back).
+    The distortion gate below decides, not taste.
     """
     xs, ys, zs = ring[:, 0], ring[:, 1], ring[:, 2]
     y0, y1 = float(points[:, 1].min()), float(points[:, 1].max())
-    nband = 14
-    edges = np.linspace(y0, y1, nband + 1)
+    edges = np.linspace(y0, y1, bands + 1)
     tables = []
-    for b in range(nband):
+    for b in range(bands):
         lo, hi = edges[b], edges[b + 1]
         sel = (ys >= lo - 0.02) & (ys <= hi + 0.02)
         if sel.sum() < 8:
@@ -111,27 +162,62 @@ def torso_chart(points, ring, seam):
         if sel.sum() < 4:
             tables.append(tables[-1] if tables else None)
             continue
-        x0 = 0.5 * (xs[sel].min() + xs[sel].max())
-        z0 = 0.5 * (zs[sel].min() + zs[sel].max())
-        a = max(1e-3, 0.5 * (xs[sel].max() - xs[sel].min()))
-        c = max(1e-3, 0.5 * (zs[sel].max() - zs[sel].min()))
+        x0 = 0.5 * (float(xs[sel].min()) + float(xs[sel].max()))
+        z0 = 0.5 * (float(zs[sel].min()) + float(zs[sel].max()))
+        a = max(1e-3, 0.5 * (float(xs[sel].max()) - float(xs[sel].min())))
+        c = max(1e-3, 0.5 * (float(zs[sel].max()) - float(zs[sel].min())))
         phi = seam + np.arange(ELLIPSE_SAMPLES + 1) * (2 * np.pi / ELLIPSE_SAMPLES)
         ds = np.sqrt((a * np.sin(phi)) ** 2 + (c * np.cos(phi)) ** 2) * (2 * np.pi / ELLIPSE_SAMPLES)
-        arc = np.concatenate([[0.0], np.cumsum(ds[:-1])])
-        tables.append((x0, z0, a, c, arc))
+        tables.append((x0, z0, a, c, np.concatenate([[0.0], np.cumsum(ds[:-1])])))
 
+    theta = np.empty(len(points))
     u = np.empty(len(points))
     for i, (x, y, z) in enumerate(points):
         b = int(np.clip(np.searchsorted(edges, y) - 1, 0, len(tables) - 1))
         tab = tables[b]
         if tab is None:
-            raise SystemExit("torso_chart: no ring data for a height band")
+            raise SystemExit("torso_chart_banded: no ring data for a height band")
         x0, z0, a, c, arc = tab
-        theta = math.atan2((z - z0) / c, (x - x0) / a)
-        frac = ((theta - seam) % (2 * np.pi)) / (2 * np.pi)
+        th = math.atan2((z - z0) / c, (x - x0) / a)
+        frac = ((th - seam) % (2 * np.pi)) / (2 * np.pi)
         u[i] = float(np.interp(frac * ELLIPSE_SAMPLES, np.arange(ELLIPSE_SAMPLES + 1), arc))
+        theta[i] = th
     mid = tables[len(tables) // 2]
     return u, points[:, 1].copy(), (mid[2], mid[3])
+
+
+def chart_distortion(mapping, tris, fsel, pos):
+    """Local scale spread and anisotropy of a candidate chart, in metres.
+
+    A zone is advertised to the user in centimetres, so a chart whose density
+    swings across the zone would make the label a lie: the artwork is scaled by a
+    single `uvPerMeter`. Faces below 1 cm² are ignored (slivers make the Jacobian
+    meaningless).
+    """
+    idx = np.where(fsel)[0]
+    if not len(idx):
+        return 1.0, 1.0, 1.0
+    uv = np.zeros((len(idx), 3, 2))
+    for j, f in enumerate(idx):
+        for c in range(3):
+            uv[j, c] = mapping[int(tris[f, c])]
+    # per-corner points, with a local (0,1,2 / 3,4,5 / …) connectivity
+    local = np.arange(len(idx) * 3, dtype=np.int32).reshape(-1, 3)
+    pts = pos[tris[idx]].reshape(-1, 3)
+    ku, kv, ok, _ = face_scales(pts, uv.reshape(-1, 2), local)
+    a = pos[tris[idx][:, 0]]
+    b = pos[tris[idx][:, 1]]
+    c3 = pos[tris[idx][:, 2]]
+    area = 0.5 * np.linalg.norm(np.cross(b - a, c3 - a), axis=1)
+    keep = ok & (area > 1e-4) & np.isfinite(ku) & np.isfinite(kv)
+    if keep.sum() < 8:
+        return 1.0, 1.0, 1.0
+    sc = np.sqrt(ku[keep] * kv[keep])
+    med = float(np.median(sc))
+    spread_lo = float(np.percentile(sc / med, 5))
+    spread_hi = float(np.percentile(sc / med, 95))
+    aniso = float(np.percentile(kv[keep] / np.maximum(ku[keep], 1e-9), 95))
+    return spread_lo, spread_hi, aniso
 
 
 # ----------------------------------------------------------------- island split
@@ -311,36 +397,50 @@ def build_charts(kind, pos, uv0, tris, vlab):
         candidates.append((mapping, f"packed islands x{n_isl} @ {k:.2f} uv/m", n_isl))
 
 
-        if name in TORSO_ZONES:
-            # the elliptic parameter has 0 at the body's left side and 90° at the
-            # front, so a front zone is cut at 270° (the spine) and a back zone at 90°
-            seam = 1.5 * math.pi if name in ("chest", "abdomen") else 0.5 * math.pi
-            u, v, axes = torso_chart(P, ring, seam)
-            mapping = {int(x): (float(uu), float(vv)) for x, uu, vv in zip(verts, u, v)}
-            candidates.append((mapping, f"ellipse unroll {axes[0]:.2f}x{axes[1]:.2f} m", 1))
+        if name in ELLIPTIC_ZONES:
+            # theta = 0 at +X, 90° at +Z (the front). Front zones are cut at 270°
+            # (the spine / back of the head) and back zones at 90°, so the branch cut
+            # never crosses the artwork.
+            seam = 1.5 * math.pi if name in SEAM_BACK else 0.5 * math.pi
+            ring_pts = ring if name in TORSO_ZONES else P
+            variants = [(lambda p, r: torso_chart(p, r, seam), "fixed"),
+                        (lambda p, r: torso_chart_banded(p, r, seam), "banded")]
+            if name == "head":
+                variants.append((lambda p, r: torso_chart(p, r, seam, taper=True), "tapered"))
+            for fn, tag in variants:
+                u, v, axes = fn(P, ring_pts)
+                mapping = {int(x): (float(uu), float(vv)) for x, uu, vv in zip(verts, u, v)}
+                candidates.append((mapping, f"ellipse unroll ({tag}) {axes[0]:.2f}x{axes[1]:.2f} m", 1))
 
         scored = []
         for mapping, label, islands in candidates:
             corners = np.array([[mapping[int(vv)] for vv in tris[f]] for f in np.where(fsel)[0]])
             corners -= corners.reshape(-1, 2).min(axis=0)
             span = corners.reshape(-1, 2).max(axis=0)
-            scored.append((usable_square(corners, span), label, islands, mapping, float(span[0]), float(span[1])))
+            lo, hi, aniso = chart_distortion(mapping, tris, fsel, pos)
+            scored.append((usable_square(corners, span), label, islands, mapping,
+                           float(span[0]), float(span[1]), lo, hi, aniso))
 
         # Keep the layout that allows the biggest piece, but let a candidate whose
         # cell is much smaller win if it is within 2 % of that size: a zone that
         # wastes a 1.6 m cell for the same usable square would starve the atlas
         # (the skin unwrap leaves the hands in huge, mostly-empty boxes).
+        # Capacity decides; honesty is handled downstream. `region_metrics.py`
+        # measures the density *at the placed square* and advertises that number, so
+        # a chart with uneven density cannot overstate centimetres -- it just reports
+        # a smaller piece. The distortion figures stay in the JSON as diagnostics.
         scored.sort(key=lambda r: -r[0])
         best_sq = scored[0][0]
         near = [c for c in scored if c[0] >= best_sq * 0.98]
         near.sort(key=lambda c: c[4] * c[5])
-        best, label, islands, mapping, w, h = near[0]
+        best, label, islands, mapping, w, h = near[0][:6]
         vmap[name] = mapping
         stats[name] = {
             "kind": label,
             "islands": islands,
             "squareM": round(float(best), 3),
             "options": {lbl: round(float(sc), 3) for sc, lbl, *_ in scored},
+            "spread": [round(float(x), 3) for x in (near[0][6], near[0][7], near[0][8])],
         }
 
     return face_zone, vmap, stats
@@ -471,7 +571,8 @@ def main():
             print(f"  {name:12s} {r['uvPerMetre']:5.2f} uv/m (was {r['uvPerMetreWas']:4.2f})"
                   f"  scale {r['scaleP05P95'][0]:.2f}–{r['scaleP05P95'][1]:.2f}"
                   f"  aniso {r['anisoP05P95'][0]:.2f}–{r['anisoP05P95'][1]:.2f}"
-                  f"  cell {rects[name]['metres'][0]:.2f}×{rects[name]['metres'][1]:.2f} m")
+                  f"  cell {rects[name]['metres'][0]:.2f}×{rects[name]['metres'][1]:.2f} m"
+                  f"  [{stats[name]['spread'][0]:.2f}-{stats[name]['spread'][1]:.2f}/{stats[name]['spread'][2]:.2f}]")
 
     with open(OUT, "w") as fh:
         json.dump(summary, fh, indent=1)
