@@ -175,7 +175,17 @@ export function StudioWorkspace() {
       return;
     }
     try {
-      const url = canvas.toDataURL('image/png');
+      // The viewport is transparent by design; composite onto the stage colour so
+      // the file opens as a framed still rather than a cut-out.
+      const out = document.createElement('canvas');
+      out.width = canvas.width;
+      out.height = canvas.height;
+      const ctx = out.getContext('2d');
+      if (!ctx) throw new Error('2D context unavailable');
+      ctx.fillStyle = '#0b0b0c';
+      ctx.fillRect(0, 0, out.width, out.height);
+      ctx.drawImage(canvas, 0, 0);
+      const url = out.toDataURL('image/png');
       const link = document.createElement('a');
       const stamp = new Date().toISOString().slice(0, 10);
       link.href = url;

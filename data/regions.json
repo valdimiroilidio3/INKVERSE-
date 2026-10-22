@@ -139,7 +139,7 @@
     "physical": [
      0.2129,
      0.3885,
-     0.2511
+     0.2497
     ],
     "vertices": 4679,
     "slots": [
@@ -197,16 +197,16 @@
       "physical": [
        0.2599,
        0.206,
-       0.2036
+       0.203
       ],
       "faces": 762,
-      "uvPerMeterX": 0.66868,
-      "uvPerMeterY": 0.71859,
-      "uvPerMeter": 0.69363,
-      "areaM2": 0.08425,
+      "uvPerMeterX": 0.66862,
+      "uvPerMeterY": 0.71358,
+      "uvPerMeter": 0.6911,
+      "areaM2": 0.08463,
       "boxMeters": [
        0.4979,
-       0.2708
+       0.2727
       ]
      },
      {
@@ -271,7 +271,7 @@
     "physical": [
      0.2922,
      0.1989,
-     0.1822
+     0.2018
     ],
     "vertices": 342,
     "slots": [
@@ -285,16 +285,16 @@
       "physical": [
        0.3029,
        0.2276,
-       0.1963
+       0.2154
       ],
       "faces": 684,
-      "uvPerMeterX": 0.58645,
-      "uvPerMeterY": 0.59788,
-      "uvPerMeter": 0.59217,
-      "areaM2": 0.07569,
+      "uvPerMeterX": 0.55677,
+      "uvPerMeterY": 0.58395,
+      "uvPerMeter": 0.57036,
+      "areaM2": 0.08074,
       "boxMeters": [
-       0.6271,
-       0.2657
+       0.6606,
+       0.2721
       ]
      }
     ]
@@ -315,9 +315,9 @@
     "physical": [
      0.3375,
      0.342,
-     0.178
+     0.2028
     ],
-    "vertices": 264,
+    "vertices": 268,
     "slots": [
      {
       "uvBox": [
@@ -329,16 +329,16 @@
       "physical": [
        0.3559,
        0.3916,
-       0.2022
+       0.2231
       ],
-      "faces": 531,
-      "uvPerMeterX": 0.58625,
-      "uvPerMeterY": 0.58742,
-      "uvPerMeter": 0.58684,
-      "areaM2": 0.12002,
+      "faces": 539,
+      "uvPerMeterX": 0.55754,
+      "uvPerMeterY": 0.57138,
+      "uvPerMeter": 0.56446,
+      "areaM2": 0.12857,
       "boxMeters": [
-       0.6237,
-       0.3802
+       0.6558,
+       0.3909
       ]
      }
     ]
@@ -359,7 +359,7 @@
     "physical": [
      0.2709,
      0.2796,
-     0.0666
+     0.0678
     ],
     "vertices": 216,
     "slots": [
@@ -373,16 +373,16 @@
       "physical": [
        0.2855,
        0.3104,
-       0.082
+       0.0861
       ],
       "faces": 376,
-      "uvPerMeterX": 0.42121,
-      "uvPerMeterY": 0.4211,
-      "uvPerMeter": 0.42116,
-      "areaM2": 0.0726,
+      "uvPerMeterX": 0.41843,
+      "uvPerMeterY": 0.42293,
+      "uvPerMeter": 0.42068,
+      "areaM2": 0.07195,
       "boxMeters": [
-       1.2348,
-       0.8855
+       1.243,
+       0.8817
       ]
      }
     ]
@@ -403,9 +403,9 @@
     "physical": [
      0.302,
      0.1765,
-     0.1013
+     0.1039
     ],
-    "vertices": 122,
+    "vertices": 120,
     "slots": [
      {
       "uvBox": [
@@ -417,16 +417,16 @@
       "physical": [
        0.3107,
        0.1934,
-       0.1089
+       0.1142
       ],
-      "faces": 228,
-      "uvPerMeterX": 0.41443,
-      "uvPerMeterY": 0.42787,
-      "uvPerMeter": 0.42115,
-      "areaM2": 0.04633,
+      "faces": 224,
+      "uvPerMeterX": 0.4136,
+      "uvPerMeterY": 0.42339,
+      "uvPerMeter": 0.4185,
+      "areaM2": 0.04584,
       "boxMeters": [
-       1.0868,
-       0.2153
+       1.089,
+       0.2175
       ]
      }
     ]
@@ -434,7 +434,7 @@
    "shoulder-l": {
     "uvBox": [
      0.48676,
-     0.76922,
+     0.77215,
      0.56896,
      0.90234
     ],
@@ -442,14 +442,14 @@
      500,
      104,
      580,
-     232
+     229
     ],
     "physical": [
      0.1458,
      0.1078,
-     0.1674
+     0.1624
     ],
-    "vertices": 52,
+    "vertices": 49,
     "slots": [
      {
       "uvBox": [
@@ -461,16 +461,16 @@
       "physical": [
        0.1773,
        0.1161,
-       0.1677
+       0.1686
       ],
-      "faces": 102,
-      "uvPerMeterX": 0.35168,
-      "uvPerMeterY": 0.34848,
-      "uvPerMeter": 0.35008,
-      "areaM2": 0.03304,
+      "faces": 96,
+      "uvPerMeterX": 0.34859,
+      "uvPerMeterY": 0.34048,
+      "uvPerMeter": 0.34453,
+      "areaM2": 0.03196,
       "boxMeters": [
-       0.2233,
-       0.3353
+       0.2253,
+       0.3432
       ]
      }
     ]
@@ -478,7 +478,7 @@
    "shoulder-r": {
     "uvBox": [
      0.19155,
-     0.76922,
+     0.77313,
      0.27277,
      0.90136
     ],
@@ -486,14 +486,14 @@
      198,
      105,
      277,
-     232
+     228
     ],
     "physical": [
      0.1458,
      0.1078,
-     0.1674
+     0.1624
     ],
-    "vertices": 52,
+    "vertices": 49,
     "slots": [
      {
       "uvBox": [
@@ -505,16 +505,16 @@
       "physical": [
        0.1773,
        0.1161,
-       0.1677
+       0.1686
       ],
-      "faces": 102,
-      "uvPerMeterX": 0.35164,
-      "uvPerMeterY": 0.34848,
-      "uvPerMeter": 0.35006,
-      "areaM2": 0.03304,
+      "faces": 96,
+      "uvPerMeterX": 0.3486,
+      "uvPerMeterY": 0.34048,
+      "uvPerMeter": 0.34454,
+      "areaM2": 0.03196,
       "boxMeters": [
-       0.2234,
-       0.3353
+       0.2253,
+       0.3432
       ]
      }
     ]
@@ -535,9 +535,9 @@
     "physical": [
      0.3076,
      0.3062,
-     0.2163
+     0.2243
     ],
-    "vertices": 391,
+    "vertices": 394,
     "slots": [
      {
       "uvBox": [
@@ -549,16 +549,16 @@
       "physical": [
        0.3446,
        0.3268,
-       0.2231
+       0.2354
       ],
-      "faces": 753,
-      "uvPerMeterX": 0.42595,
-      "uvPerMeterY": 0.39485,
-      "uvPerMeter": 0.4104,
-      "areaM2": 0.13271,
+      "faces": 759,
+      "uvPerMeterX": 0.42943,
+      "uvPerMeterY": 0.39576,
+      "uvPerMeter": 0.4126,
+      "areaM2": 0.13505,
       "boxMeters": [
-       0.5572,
-       0.6398
+       0.5527,
+       0.6383
       ]
      }
     ]
@@ -579,9 +579,9 @@
     "physical": [
      0.3076,
      0.3062,
-     0.2163
+     0.2243
     ],
-    "vertices": 391,
+    "vertices": 394,
     "slots": [
      {
       "uvBox": [
@@ -593,16 +593,16 @@
       "physical": [
        0.3386,
        0.3268,
-       0.2231
+       0.2354
       ],
-      "faces": 751,
-      "uvPerMeterX": 0.42602,
-      "uvPerMeterY": 0.39485,
-      "uvPerMeter": 0.41043,
-      "areaM2": 0.13228,
+      "faces": 757,
+      "uvPerMeterX": 0.42943,
+      "uvPerMeterY": 0.39576,
+      "uvPerMeter": 0.41259,
+      "areaM2": 0.13462,
       "boxMeters": [
-       0.5447,
-       0.6398
+       0.5404,
+       0.6383
       ]
      }
     ]
@@ -623,9 +623,9 @@
     "physical": [
      0.2053,
      0.2054,
-     0.244
+     0.2437
     ],
-    "vertices": 245,
+    "vertices": 244,
     "slots": [
      {
       "uvBox": [
@@ -637,16 +637,16 @@
       "physical": [
        0.2161,
        0.2058,
-       0.2661
+       0.2657
       ],
-      "faces": 427,
-      "uvPerMeterX": 0.32694,
-      "uvPerMeterY": 0.31756,
-      "uvPerMeter": 0.32225,
-      "areaM2": 0.07001,
+      "faces": 425,
+      "uvPerMeterX": 0.32774,
+      "uvPerMeterY": 0.31684,
+      "uvPerMeter": 0.32229,
+      "areaM2": 0.06987,
       "boxMeters": [
-       0.3098,
-       0.3358
+       0.3091,
+       0.3366
       ]
      }
     ]
@@ -667,9 +667,9 @@
     "physical": [
      0.2053,
      0.2054,
-     0.244
+     0.2437
     ],
-    "vertices": 245,
+    "vertices": 244,
     "slots": [
      {
       "uvBox": [
@@ -681,16 +681,16 @@
       "physical": [
        0.2161,
        0.2058,
-       0.2661
+       0.2657
       ],
-      "faces": 427,
-      "uvPerMeterX": 0.32694,
-      "uvPerMeterY": 0.31755,
-      "uvPerMeter": 0.32225,
-      "areaM2": 0.07001,
+      "faces": 425,
+      "uvPerMeterX": 0.32774,
+      "uvPerMeterY": 0.31684,
+      "uvPerMeter": 0.32229,
+      "areaM2": 0.06987,
       "boxMeters": [
-       0.3098,
-       0.3358
+       0.3091,
+       0.3366
       ]
      }
     ]
@@ -711,9 +711,9 @@
     "physical": [
      0.1384,
      0.1089,
-     0.1465
+     0.1464
     ],
-    "vertices": 1813,
+    "vertices": 1814,
     "slots": [
      {
       "uvBox": [
@@ -725,16 +725,16 @@
       "physical": [
        0.1384,
        0.1089,
-       0.1512
+       0.151
       ],
       "faces": 3179,
-      "uvPerMeterX": 0.5233,
-      "uvPerMeterY": 0.51806,
-      "uvPerMeter": 0.52068,
-      "areaM2": 0.03746,
+      "uvPerMeterX": 0.52472,
+      "uvPerMeterY": 0.52002,
+      "uvPerMeter": 0.52237,
+      "areaM2": 0.0374,
       "boxMeters": [
-       0.3683,
-       0.3577
+       0.3673,
+       0.3563
       ]
      }
     ]
@@ -755,9 +755,9 @@
     "physical": [
      0.1384,
      0.1089,
-     0.1465
+     0.1464
     ],
-    "vertices": 1813,
+    "vertices": 1814,
     "slots": [
      {
       "uvBox": [
@@ -769,16 +769,16 @@
       "physical": [
        0.1384,
        0.1089,
-       0.1512
+       0.151
       ],
       "faces": 3179,
-      "uvPerMeterX": 0.52332,
-      "uvPerMeterY": 0.51805,
-      "uvPerMeter": 0.52068,
-      "areaM2": 0.03746,
+      "uvPerMeterX": 0.52476,
+      "uvPerMeterY": 0.52002,
+      "uvPerMeter": 0.52239,
+      "areaM2": 0.0374,
       "boxMeters": [
-       0.3683,
-       0.3577
+       0.3673,
+       0.3563
       ]
      }
     ]
@@ -799,9 +799,9 @@
     "physical": [
      0.2301,
      0.6064,
-     0.2593
+     0.2612
     ],
-    "vertices": 409,
+    "vertices": 408,
     "slots": [
      {
       "uvBox": [
@@ -813,16 +813,16 @@
       "physical": [
        0.2496,
        0.65,
-       0.2673
+       0.2696
       ],
-      "faces": 788,
-      "uvPerMeterX": 0.39878,
-      "uvPerMeterY": 0.4115,
-      "uvPerMeter": 0.40514,
-      "areaM2": 0.28888,
+      "faces": 786,
+      "uvPerMeterX": 0.3995,
+      "uvPerMeterY": 0.41065,
+      "uvPerMeter": 0.40508,
+      "areaM2": 0.28838,
       "boxMeters": [
-       0.6984,
-       0.7002
+       0.6971,
+       0.7017
       ]
      }
     ]
@@ -843,9 +843,9 @@
     "physical": [
      0.2207,
      0.6064,
-     0.2593
+     0.2612
     ],
-    "vertices": 404,
+    "vertices": 403,
     "slots": [
      {
       "uvBox": [
@@ -857,16 +857,16 @@
       "physical": [
        0.2345,
        0.6502,
-       0.2673
+       0.2696
       ],
-      "faces": 778,
-      "uvPerMeterX": 0.39838,
-      "uvPerMeterY": 0.41066,
-      "uvPerMeter": 0.40452,
-      "areaM2": 0.28758,
+      "faces": 776,
+      "uvPerMeterX": 0.39889,
+      "uvPerMeterY": 0.4101,
+      "uvPerMeter": 0.4045,
+      "areaM2": 0.28707,
       "boxMeters": [
-       0.6735,
-       0.7017
+       0.6726,
+       0.7026
       ]
      }
     ]
@@ -1019,11 +1019,11 @@
      1010
     ],
     "physical": [
-     0.2041,
+     0.2011,
      0.3845,
-     0.2321
+     0.2264
     ],
-    "vertices": 4676,
+    "vertices": 4672,
     "slots": [
      {
       "uvBox": [
@@ -1033,18 +1033,18 @@
        0.81763
       ],
       "physical": [
-       0.181,
+       0.1797,
        0.2456,
-       0.2103
+       0.2079
       ],
       "faces": 6232,
-      "uvPerMeterX": 0.91866,
-      "uvPerMeterY": 0.91198,
-      "uvPerMeter": 0.91532,
-      "areaM2": 0.12955,
+      "uvPerMeterX": 0.91615,
+      "uvPerMeterY": 0.94138,
+      "uvPerMeter": 0.92877,
+      "areaM2": 0.12818,
       "boxMeters": [
-       0.3835,
-       0.7335
+       0.3845,
+       0.7106
       ]
      },
      {
@@ -1057,16 +1057,16 @@
       "physical": [
        0.0737,
        0.08,
-       0.1016
+       0.1007
       ],
       "faces": 796,
-      "uvPerMeterX": 0.98643,
-      "uvPerMeterY": 0.96584,
-      "uvPerMeter": 0.97614,
-      "areaM2": 0.02281,
+      "uvPerMeterX": 0.9978,
+      "uvPerMeterY": 0.9914,
+      "uvPerMeter": 0.9946,
+      "areaM2": 0.02272,
       "boxMeters": [
-       0.1684,
-       0.129
+       0.1665,
+       0.1257
       ]
      },
      {
@@ -1077,18 +1077,18 @@
        0.97386
       ],
       "physical": [
-       0.2459,
+       0.245,
        0.2099,
-       0.2003
+       0.202
       ],
-      "faces": 755,
-      "uvPerMeterX": 0.72213,
-      "uvPerMeterY": 0.7262,
-      "uvPerMeter": 0.72417,
-      "areaM2": 0.07549,
+      "faces": 747,
+      "uvPerMeterX": 0.74092,
+      "uvPerMeterY": 0.72089,
+      "uvPerMeter": 0.73091,
+      "areaM2": 0.07255,
       "boxMeters": [
-       0.4556,
-       0.2718
+       0.4441,
+       0.2738
       ]
      },
      {
@@ -1101,16 +1101,16 @@
       "physical": [
        0.0318,
        0.0333,
-       0.0301
+       0.0306
       ],
       "faces": 586,
-      "uvPerMeterX": 0.54009,
-      "uvPerMeterY": 0.53093,
-      "uvPerMeter": 0.53551,
-      "areaM2": 0.00311,
+      "uvPerMeterX": 0.54091,
+      "uvPerMeterY": 0.53223,
+      "uvPerMeter": 0.53657,
+      "areaM2": 0.00312,
       "boxMeters": [
-       0.1204,
-       0.161
+       0.1202,
+       0.1606
       ]
      },
      {
@@ -1123,16 +1123,16 @@
       "physical": [
        0.0318,
        0.0333,
-       0.0301
+       0.0306
       ],
       "faces": 586,
-      "uvPerMeterX": 0.54009,
-      "uvPerMeterY": 0.53093,
-      "uvPerMeter": 0.53551,
-      "areaM2": 0.00311,
+      "uvPerMeterX": 0.54091,
+      "uvPerMeterY": 0.5322,
+      "uvPerMeter": 0.53655,
+      "areaM2": 0.00312,
       "boxMeters": [
-       0.1204,
-       0.161
+       0.1202,
+       0.1606
       ]
      }
     ]
@@ -1151,9 +1151,9 @@
      386
     ],
     "physical": [
-     0.2796,
+     0.2742,
      0.1987,
-     0.1789
+     0.245
     ],
     "vertices": 339,
     "slots": [
@@ -1165,18 +1165,18 @@
        0.79193
       ],
       "physical": [
-       0.2929,
+       0.2801,
        0.2332,
-       0.1958
+       0.26
       ],
       "faces": 678,
-      "uvPerMeterX": 0.59805,
-      "uvPerMeterY": 0.5937,
-      "uvPerMeter": 0.59587,
-      "areaM2": 0.07342,
+      "uvPerMeterX": 0.4948,
+      "uvPerMeterY": 0.5363,
+      "uvPerMeter": 0.51555,
+      "areaM2": 0.09222,
       "boxMeters": [
-       0.615,
-       0.2875
+       0.7433,
+       0.3182
       ]
      }
     ]
@@ -1184,7 +1184,7 @@
    "abdomen": {
     "uvBox": [
      0.19155,
-     0.43491,
+     0.41242,
      0.56896,
      0.6648
     ],
@@ -1192,35 +1192,35 @@
      198,
      347,
      580,
-     574
+     597
     ],
     "physical": [
-     0.3336,
-     0.3409,
-     0.1736
+     0.327,
+     0.3768,
+     0.1953
     ],
-    "vertices": 260,
+    "vertices": 278,
     "slots": [
      {
       "uvBox": [
        0.19771,
-       0.43797,
+       0.41556,
        0.56336,
        0.65707
       ],
       "physical": [
-       0.3603,
-       0.3903,
-       0.1975
+       0.3581,
+       0.4165,
+       0.2473
       ],
-      "faces": 523,
-      "uvPerMeterX": 0.61255,
-      "uvPerMeterY": 0.58307,
-      "uvPerMeter": 0.59781,
-      "areaM2": 0.11577,
+      "faces": 559,
+      "uvPerMeterX": 0.62057,
+      "uvPerMeterY": 0.56124,
+      "uvPerMeter": 0.59091,
+      "areaM2": 0.13047,
       "boxMeters": [
-       0.5969,
-       0.3758
+       0.5892,
+       0.4303
       ]
      }
     ]
@@ -1239,11 +1239,11 @@
      421
     ],
     "physical": [
-     0.2614,
-     0.2724,
-     0.0706
+     0.2601,
+     0.2691,
+     0.0656
     ],
-    "vertices": 210,
+    "vertices": 208,
     "slots": [
      {
       "uvBox": [
@@ -1254,17 +1254,17 @@
       ],
       "physical": [
        0.2753,
-       0.3012,
-       0.0848
+       0.2986,
+       0.09
       ],
-      "faces": 366,
-      "uvPerMeterX": 0.42226,
-      "uvPerMeterY": 0.41817,
-      "uvPerMeter": 0.42021,
-      "areaM2": 0.07207,
+      "faces": 362,
+      "uvPerMeterX": 0.44237,
+      "uvPerMeterY": 0.42541,
+      "uvPerMeter": 0.43389,
+      "areaM2": 0.06593,
       "boxMeters": [
-       1.2317,
-       0.8917
+       1.1757,
+       0.8765
       ]
      }
     ]
@@ -1272,7 +1272,7 @@
    "lower-back": {
     "uvBox": [
      0.15343,
-     0.49258,
+     0.51408,
      0.60708,
      0.60224
     ],
@@ -1280,58 +1280,58 @@
      159,
      411,
      619,
-     515
+     493
     ],
     "physical": [
-     0.2971,
-     0.177,
-     0.1018
+     0.2973,
+     0.1211,
+     0.0929
     ],
-    "vertices": 122,
+    "vertices": 118,
     "slots": [
      {
       "uvBox": [
        0.15533,
-       0.50588,
+       0.51835,
        0.60573,
        0.59798
       ],
       "physical": [
-       0.3126,
-       0.194,
-       0.1088
+       0.3154,
+       0.1639,
+       0.1283
       ],
-      "faces": 228,
-      "uvPerMeterX": 0.43679,
-      "uvPerMeterY": 0.41604,
-      "uvPerMeter": 0.42642,
-      "areaM2": 0.04595,
+      "faces": 220,
+      "uvPerMeterX": 0.43838,
+      "uvPerMeterY": 0.41307,
+      "uvPerMeter": 0.42572,
+      "areaM2": 0.04442,
       "boxMeters": [
-       1.0311,
-       0.2214
+       1.0274,
+       0.1928
       ]
      }
     ]
    },
    "shoulder-l": {
     "uvBox": [
-     0.48089,
+     0.47307,
      0.75944,
      0.57483,
      0.91407
     ],
     "uvPixels": [
-     494,
+     486,
      92,
      586,
      242
     ],
     "physical": [
-     0.1436,
+     0.1403,
      0.1106,
-     0.1575
+     0.1574
     ],
-    "vertices": 79,
+    "vertices": 84,
     "slots": [
      {
       "uvBox": [
@@ -1341,18 +1341,18 @@
        0.90654
       ],
       "physical": [
-       0.1677,
+       0.169,
        0.1275,
-       0.1627
+       0.1624
       ],
-      "faces": 156,
-      "uvPerMeterX": 0.3941,
-      "uvPerMeterY": 0.40384,
-      "uvPerMeter": 0.39897,
-      "areaM2": 0.0368,
+      "faces": 166,
+      "uvPerMeterX": 0.39851,
+      "uvPerMeterY": 0.41463,
+      "uvPerMeter": 0.40657,
+      "areaM2": 0.03739,
       "boxMeters": [
-       0.2336,
-       0.334
+       0.2311,
+       0.3254
       ]
      }
     ]
@@ -1361,21 +1361,21 @@
     "uvBox": [
      0.18471,
      0.75944,
-     0.27961,
+     0.28646,
      0.91407
     ],
     "uvPixels": [
      191,
      92,
-     284,
+     291,
      242
     ],
     "physical": [
-     0.1436,
+     0.1403,
      0.1106,
-     0.1575
+     0.1574
     ],
-    "vertices": 79,
+    "vertices": 84,
     "slots": [
      {
       "uvBox": [
@@ -1385,18 +1385,18 @@
        0.90654
       ],
       "physical": [
-       0.1677,
+       0.169,
        0.1275,
-       0.1627
+       0.1624
       ],
-      "faces": 156,
-      "uvPerMeterX": 0.39412,
-      "uvPerMeterY": 0.40384,
-      "uvPerMeter": 0.39898,
-      "areaM2": 0.0368,
+      "faces": 166,
+      "uvPerMeterX": 0.39849,
+      "uvPerMeterY": 0.41463,
+      "uvPerMeter": 0.40656,
+      "areaM2": 0.03739,
       "boxMeters": [
-       0.2336,
-       0.334
+       0.2311,
+       0.3254
       ]
      }
     ]
@@ -1415,32 +1415,32 @@
      336
     ],
     "physical": [
-     0.325,
+     0.3274,
      0.3004,
-     0.2162
+     0.2349
     ],
-    "vertices": 373,
+    "vertices": 371,
     "slots": [
      {
       "uvBox": [
        0.41907,
        0.67077,
        0.6685,
-       0.93177
+       0.93392
       ],
       "physical": [
-       0.3583,
+       0.3604,
        0.3177,
-       0.2221
+       0.2471
       ],
-      "faces": 717,
-      "uvPerMeterX": 0.42621,
-      "uvPerMeterY": 0.4256,
-      "uvPerMeter": 0.42591,
-      "areaM2": 0.11859,
+      "faces": 713,
+      "uvPerMeterX": 0.4132,
+      "uvPerMeterY": 0.42845,
+      "uvPerMeter": 0.42082,
+      "areaM2": 0.11988,
       "boxMeters": [
-       0.5852,
-       0.6133
+       0.6037,
+       0.6142
       ]
      }
     ]
@@ -1450,64 +1450,64 @@
      0.09282,
      0.66755,
      0.34315,
-     0.93557
+     0.93753
     ],
     "uvPixels": [
      97,
-     70,
+     68,
      349,
      336
     ],
     "physical": [
-     0.325,
+     0.3274,
      0.3004,
-     0.2162
+     0.2349
     ],
-    "vertices": 373,
+    "vertices": 371,
     "slots": [
      {
       "uvBox": [
        0.09256,
        0.67077,
        0.33913,
-       0.92898
+       0.93177
       ],
       "physical": [
-       0.3558,
+       0.3577,
        0.3177,
-       0.2221
+       0.2471
       ],
-      "faces": 714,
-      "uvPerMeterX": 0.42604,
-      "uvPerMeterY": 0.42549,
-      "uvPerMeter": 0.42576,
-      "areaM2": 0.11794,
+      "faces": 710,
+      "uvPerMeterX": 0.4131,
+      "uvPerMeterY": 0.42816,
+      "uvPerMeter": 0.42063,
+      "areaM2": 0.11935,
       "boxMeters": [
-       0.5787,
-       0.6069
+       0.5969,
+       0.6096
       ]
      }
     ]
    },
    "forearm-l": {
     "uvBox": [
-     0.58158,
-     0.11623,
+     0.5718,
+     0.11428,
      0.75273,
      0.87692
     ],
     "uvPixels": [
-     597,
+     587,
      130,
      768,
-     900
+     902
     ],
     "physical": [
-     0.2187,
-     0.2006,
-     0.2361
+     0.2284,
+     0.2064,
+     0.2344
     ],
-    "vertices": 244,
+    "vertices": 249,
     "slots": [
      {
       "uvBox": [
@@ -1517,18 +1517,18 @@
        0.87258
       ],
       "physical": [
-       0.2266,
+       0.2333,
        0.201,
-       0.2573
+       0.2554
       ],
-      "faces": 425,
-      "uvPerMeterX": 0.32042,
-      "uvPerMeterY": 0.33534,
-      "uvPerMeter": 0.32788,
-      "areaM2": 0.06623,
+      "faces": 424,
+      "uvPerMeterX": 0.3188,
+      "uvPerMeterY": 0.33361,
+      "uvPerMeter": 0.3262,
+      "areaM2": 0.06655,
       "boxMeters": [
-       0.3161,
-       0.318
+       0.3178,
+       0.3197
       ]
      }
     ]
@@ -1536,22 +1536,22 @@
    "forearm-r": {
     "uvBox": [
      0.0068,
-     0.11721,
-     0.54159,
+     0.11428,
+     0.5455,
      0.87692
     ],
     "uvPixels": [
      9,
      130,
-     552,
-     899
+     556,
+     902
     ],
     "physical": [
-     0.2187,
-     0.2006,
-     0.2361
+     0.2284,
+     0.2064,
+     0.2344
     ],
-    "vertices": 244,
+    "vertices": 249,
     "slots": [
      {
       "uvBox": [
@@ -1561,18 +1561,18 @@
        0.87258
       ],
       "physical": [
-       0.2266,
+       0.2333,
        0.201,
-       0.2573
+       0.2554
       ],
-      "faces": 425,
-      "uvPerMeterX": 0.3204,
-      "uvPerMeterY": 0.33534,
-      "uvPerMeter": 0.32787,
-      "areaM2": 0.06623,
+      "faces": 424,
+      "uvPerMeterX": 0.31879,
+      "uvPerMeterY": 0.33362,
+      "uvPerMeter": 0.3262,
+      "areaM2": 0.06655,
       "boxMeters": [
-       0.3162,
-       0.318
+       0.3178,
+       0.3196
       ]
      }
     ]
@@ -1591,11 +1591,11 @@
      1011
     ],
     "physical": [
-     0.1419,
+     0.1497,
      0.118,
-     0.1547
+     0.1492
     ],
-    "vertices": 1813,
+    "vertices": 1808,
     "slots": [
      {
       "uvBox": [
@@ -1605,18 +1605,18 @@
        0.19634
       ],
       "physical": [
-       0.1419,
+       0.1497,
        0.118,
-       0.1601
+       0.1522
       ],
-      "faces": 3179,
-      "uvPerMeterX": 0.5057,
-      "uvPerMeterY": 0.5046,
-      "uvPerMeter": 0.50515,
-      "areaM2": 0.03961,
+      "faces": 3172,
+      "uvPerMeterX": 0.5121,
+      "uvPerMeterY": 0.51587,
+      "uvPerMeter": 0.51399,
+      "areaM2": 0.0395,
       "boxMeters": [
-       0.3811,
-       0.3672
+       0.3764,
+       0.3592
       ]
      }
     ]
@@ -1635,11 +1635,11 @@
      1010
     ],
     "physical": [
-     0.1419,
+     0.1497,
      0.118,
-     0.1547
+     0.1492
     ],
-    "vertices": 1813,
+    "vertices": 1808,
     "slots": [
      {
       "uvBox": [
@@ -1649,31 +1649,31 @@
        0.19683
       ],
       "physical": [
-       0.1419,
+       0.1497,
        0.118,
-       0.1601
+       0.1522
       ],
-      "faces": 3179,
-      "uvPerMeterX": 0.5057,
-      "uvPerMeterY": 0.50458,
-      "uvPerMeter": 0.50514,
-      "areaM2": 0.03961,
+      "faces": 3172,
+      "uvPerMeterX": 0.51207,
+      "uvPerMeterY": 0.51593,
+      "uvPerMeter": 0.514,
+      "areaM2": 0.0395,
       "boxMeters": [
-       0.3811,
-       0.3672
+       0.3764,
+       0.3591
       ]
      }
     ]
    },
    "thigh-l": {
     "uvBox": [
-     0.3675,
+     0.37141,
      0.26091,
      0.64912,
      0.55532
     ],
     "uvPixels": [
-     378,
+     382,
      459,
      662,
      752
@@ -1681,30 +1681,30 @@
     "physical": [
      0.2295,
      0.6122,
-     0.2768
+     0.2899
     ],
-    "vertices": 411,
+    "vertices": 403,
     "slots": [
      {
       "uvBox": [
-       0.37034,
+       0.37306,
        0.26329,
        0.64884,
        0.55143
       ],
       "physical": [
-       0.249,
+       0.2439,
        0.6562,
-       0.279
+       0.2974
       ],
-      "faces": 792,
-      "uvPerMeterX": 0.39749,
-      "uvPerMeterY": 0.41125,
-      "uvPerMeter": 0.40437,
-      "areaM2": 0.29676,
+      "faces": 776,
+      "uvPerMeterX": 0.39875,
+      "uvPerMeterY": 0.40434,
+      "uvPerMeter": 0.40155,
+      "areaM2": 0.29662,
       "boxMeters": [
-       0.7006,
-       0.7006
+       0.6916,
+       0.7126
       ]
      }
     ]
@@ -1725,30 +1725,30 @@
     "physical": [
      0.2201,
      0.6122,
-     0.2768
+     0.2899
     ],
-    "vertices": 406,
+    "vertices": 400,
     "slots": [
      {
       "uvBox": [
        0.11222,
        0.26329,
        0.38053,
-       0.55143
+       0.5512
       ],
       "physical": [
        0.2338,
        0.6564,
-       0.279
+       0.2923
       ],
-      "faces": 782,
-      "uvPerMeterX": 0.39687,
-      "uvPerMeterY": 0.41064,
-      "uvPerMeter": 0.40376,
-      "areaM2": 0.29547,
+      "faces": 770,
+      "uvPerMeterX": 0.39851,
+      "uvPerMeterY": 0.4042,
+      "uvPerMeter": 0.40136,
+      "areaM2": 0.29593,
       "boxMeters": [
-       0.6761,
-       0.7017
+       0.6733,
+       0.7123
       ]
      }
     ]

@@ -2,7 +2,7 @@
   "name": "inkverse",
   "version": "1.0.0",
   "private": true,
-  "description": "INKVERSE\u00ae \u2014 Premium 3D Tattoo Discovery & Virtual Try-On",
+  "description": "INKVERSE® — Premium 3D Tattoo Discovery & Virtual Try-On",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "assets:models": "python3 tools/assets/dump.py && python3 tools/assets/export_glb.py",
+    "assets:models": "python3 tools/assets/build_meshes.py && python3 tools/assets/export_glb.py",
     "assets:textures": "python3 tools/assets/bake_textures.py",
     "assets:tattoos": "python3 tools/assets/tattoos_src.py && node tools/assets/rasterize.mjs",
     "check": "npm run typecheck && npm run test && node tools/checks/check_shader.mjs",

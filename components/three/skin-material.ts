@@ -48,9 +48,12 @@ export interface SkinMaterialResult {
   setSelected: (index: number) => void;
   setInkStrength: (value: number) => void;
   setCloth: (texture: THREE.Texture | null) => void;
+  dispose: () => void;
 }
 
 export interface SkinMaterialOptions {
+  /** When false the material is a plain PBR skin — ink can be re-enabled by rebuilding. */
+  injectInk?: boolean;
   map: THREE.Texture;
   normalMap?: THREE.Texture;
   roughnessMap?: THREE.Texture;
@@ -126,9 +129,18 @@ float tattooDensity(vec2 uv, float selectedOnly) {
 }
 `;
 
+/** 1×1 opaque black; keeps every sampler bound even before the real asset arrives. */
+function createPlaceholderTexture(): THREE.DataTexture {
+  const texture = new THREE.DataTexture(new Uint8Array([0, 0, 0, 255]), 1, 1, THREE.RGBAFormat);
+  texture.needsUpdate = true;
+  return texture;
+}
+
 export function createSkinMaterial(options: SkinMaterialOptions): SkinMaterialResult {
+  const placeholder = createPlaceholderTexture();
+  const injectInk = options.injectInk !== false;
   const uniforms: SkinUniforms = {
-    uInkAtlas: { value: options.inkAtlas ?? null },
+    uInkAtlas: { value: options.inkAtlas ?? placeholder },
     uInkCount: { value: 0 },
     uInkTf: { value: Array.from({ length: MAX_TATTOOS }, () => new THREE.Vector4(0.5, 0.5, 0.1, 0.1)) },
     uInkRot: { value: new Array<number>(MAX_TATTOOS).fill(0) },
@@ -136,13 +148,13 @@ export function createSkinMaterial(options: SkinMaterialOptions): SkinMaterialRe
     uInkRegion: { value: new Array<number>(MAX_TATTOOS).fill(0) },
     uInkTile: { value: new Array<number>(MAX_TATTOOS).fill(0) },
     uInkMirror: { value: new Array<number>(MAX_TATTOOS).fill(0) },
-    uRegionIds: { value: options.regionIds ?? null },
-    uHighlightMask: { value: null },
+    uRegionIds: { value: options.regionIds ?? placeholder },
+    uHighlightMask: { value: placeholder },
     uHighlightStrength: { value: 0 },
     uSelected: { value: -1 },
     uInkColor: { value: new THREE.Color(options.inkColor ?? '#101a24') },
     uInkStrength: { value: 0.92 },
-    uCloth: { value: null },
+    uCloth: { value: placeholder },
     uClothEnabled: { value: 0 },
     uTime: { value: 0 },
   };
@@ -165,7 +177,7 @@ export function createSkinMaterial(options: SkinMaterialOptions): SkinMaterialRe
 
   const state = { inkCount: 0, selected: -1 };
 
-  material.onBeforeCompile = (shader) => {
+  if (injectInk) material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', `#include <common>\n${INK_VERT_PARS}`)
@@ -251,7 +263,7 @@ export function createSkinMaterial(options: SkinMaterialOptions): SkinMaterialRe
   };
 
   const setHighlight = (texture: THREE.Texture | null, strength: number) => {
-    uniforms.uHighlightMask.value = texture;
+    uniforms.uHighlightMask.value = texture ?? placeholder;
     uniforms.uHighlightStrength.value = strength;
     material.needsUpdate = true;
   };
@@ -266,7 +278,7 @@ export function createSkinMaterial(options: SkinMaterialOptions): SkinMaterialRe
   };
 
   const setCloth = (texture: THREE.Texture | null) => {
-    uniforms.uCloth.value = texture;
+    uniforms.uCloth.value = texture ?? placeholder;
     uniforms.uClothEnabled.value = texture ? 1 : 0;
     material.needsUpdate = true;
   };
@@ -274,7 +286,12 @@ export function createSkinMaterial(options: SkinMaterialOptions): SkinMaterialRe
   material.userData.uniforms = uniforms;
   material.userData.inkState = state;
 
-  return { material, uniforms, setInk, setHighlight, setSelected, setInkStrength, setCloth };
+  const dispose = () => {
+    material.dispose();
+    placeholder.dispose();
+  };
+
+  return { material, uniforms, setInk, setHighlight, setSelected, setInkStrength, setCloth, dispose };
 }
 
 /** Eye material: procedurally generated iris, kept deliberately simple. */

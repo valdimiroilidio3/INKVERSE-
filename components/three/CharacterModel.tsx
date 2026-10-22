@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef } from 'react';
+import type { ThreeEvent } from '@react-three/fiber';
 import { useGLTF, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { createEyeMaterial, createEyeTexture, createSkinMaterial, type InkSlot, type SkinMaterialResult } from './skin-material';
@@ -18,9 +19,13 @@ interface CharacterModelProps {
   highlightStrength?: number;
   selectedTattooId?: string | null;
   showInk?: boolean;
+  /** false = plain PBR skin, used when the ink shader cannot compile on this GPU */
+  injectInk?: boolean;
   onPickRegion?: (regionId: string) => void;
   faceRegions?: Int8Array | null;
   inkColor?: string;
+  /** Fires once the GLB is mounted and the body geometry exists. */
+  onLoaded?: () => void;
 }
 
 export function CharacterModel({
@@ -30,9 +35,11 @@ export function CharacterModel({
   highlightStrength = 0.65,
   selectedTattooId = null,
   showInk = true,
+  injectInk = true,
   onPickRegion,
   faceRegions,
   inkColor,
+  onLoaded,
 }: CharacterModelProps) {
   const gltf = useGLTF(character.modelUrl);
   const [skinMapRaw, normalMapRaw, roughnessMapRaw, regionIdsRaw, clothMapRaw] = useTexture([
@@ -61,6 +68,13 @@ export function CharacterModel({
   }, [gltf]);
 
   const regions = useMemo(() => getRegions(character.id), [character.id]);
+
+  // useGLTF suspends until the file is parsed, so this effect runs exactly when the
+  // body is available to render.
+  useEffect(() => {
+    onLoaded?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gltf]);
 
   const atlasEntries = useMemo(() => {
     if (!showInk) return [];
@@ -117,6 +131,9 @@ export function CharacterModel({
   }, [skinMap, normalMap, roughnessMap, regionIds, clothMap, character.id]);
 
   const material = useMemo(() => {
+    // Replacing the material (character swap or ink-shader fallback) must release
+    // the previous program and its placeholder textures.
+    materialRef.current?.dispose();
     const result = createSkinMaterial({
       map: skinMap,
       normalMap,
@@ -124,22 +141,25 @@ export function CharacterModel({
       regionIds,
       inkAtlas,
       inkColor,
+      injectInk,
     });
     materialRef.current = result;
     return result;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [character.id]);
+  }, [character.id, injectInk]);
 
   useEffect(() => {
     const result = materialRef.current;
     if (!result) return;
     result.uniforms.uInkAtlas.value = inkAtlas;
     result.material.needsUpdate = true;
-  }, [inkAtlas, atlasReady]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inkAtlas, atlasReady, material]);
 
   useEffect(() => {
     materialRef.current?.setCloth(clothMap);
-  }, [clothMap]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clothMap, material]);
 
   // push placement transforms
   useEffect(() => {
@@ -167,21 +187,23 @@ export function CharacterModel({
     result.setInk(slots);
     const selectedIndex = selectedTattooId ? tattoos.findIndex((t) => t.id === selectedTattooId) : -1;
     result.setSelected(selectedIndex);
-  }, [tattoos, regions, showInk, selectedTattooId, atlasReady]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tattoos, regions, showInk, selectedTattooId, atlasReady, material]);
 
   // highlight
   useEffect(() => {
     const result = materialRef.current;
     if (!result) return;
     result.setHighlight(highlightMask, highlightMask ? highlightStrength : 0);
-  }, [highlightMask, highlightStrength]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlightMask, highlightStrength, material]);
 
-  useEffect(() => {
-    const result = materialRef.current;
-    return () => {
-      result?.material.dispose();
-    };
-  }, []);
+  useEffect(
+    () => () => {
+      materialRef.current?.dispose();
+    },
+    [],
+  );
 
   const eyeTexture = useMemo(() => {
     if (typeof document === 'undefined') return null;
@@ -198,16 +220,30 @@ export function CharacterModel({
     [eyeMaterial, eyeTexture],
   );
 
-  const handlePointer = (event: { stopPropagation: () => void; faceIndex?: number }) => {
+  // A drag to orbit must not be read as a region pick. R3F synthesises click on
+  // pointerup, so track where the press started and require a near-stationary release.
+  const pressOrigin = useRef<{ x: number; y: number } | null>(null);
+
+  const handlePointerDown = (event: ThreeEvent<PointerEvent>) => {
+    pressOrigin.current = { x: event.clientX, y: event.clientY };
+  };
+
+  const handlePointer = (event: ThreeEvent<MouseEvent>) => {
     if (!onPickRegion || !faceRegions) return;
+    const origin = pressOrigin.current;
+    if (origin && Math.hypot(event.clientX - origin.x, event.clientY - origin.y) > 6) return;
     const faceIndex = event.faceIndex;
-    if (faceIndex === undefined || faceIndex < 0 || faceIndex >= faceRegions.length) return;
+    if (faceIndex === undefined || faceIndex === null || faceIndex < 0 || faceIndex >= faceRegions.length) return;
     const regionIndex = faceRegions[faceIndex] ?? 0;
+    // 0 is deliberately un-inkable (the groin band); every other id is 1–17.
     const region = regions.find((r) => r.index === regionIndex);
     if (!region) return;
     event.stopPropagation();
     onPickRegion(region.id);
   };
+
+  // Never leave the page wearing a crosshair if the stage unmounts mid-hover.
+  useEffect(() => () => void (document.body.style.cursor = ''), []);
 
   return (
     <group name={`character-${character.id}`}>
@@ -216,6 +252,7 @@ export function CharacterModel({
         material={material.material}
         castShadow
         receiveShadow
+        onPointerDown={handlePointerDown}
         onClick={handlePointer}
         onPointerOver={(event) => {
           if (!onPickRegion) return;
@@ -231,4 +268,9 @@ export function CharacterModel({
   );
 }
 
+// Warm the cache for both characters and the shared skin maps so switching bodies
+// does not drop the stage to an empty frame.
 useGLTF.preload('/models/inkverse-male.glb');
+useGLTF.preload('/models/inkverse-female.glb');
+useTexture.preload('/textures/skin-normal.webp');
+useTexture.preload('/textures/skin-roughness.webp');

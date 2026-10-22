@@ -5,6 +5,9 @@ const nextConfig: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR || '.next',
   reactStrictMode: true,
   poweredByHeader: false,
+  // The preview is served through an *.e2b.app proxy; without this Next treats the
+  // proxied asset requests as cross-origin and can refuse them in dev.
+  allowedDevOrigins: ['*.e2b.app'],
   images: {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [360, 480, 640, 828, 1080, 1280, 1600, 1920, 2560],

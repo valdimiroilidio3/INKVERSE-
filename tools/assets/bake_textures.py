@@ -251,12 +251,28 @@ def bake_clothing_mask(img_pos, mask):
     """Neutral brief painted in UV space from world position — clean edges, no extra geometry."""
     x, y, z = img_pos[..., 0], img_pos[..., 1], img_pos[..., 2]
     top = 1.104
-    front = z > -0.01
     bottom_front = 1.005 - 0.105 * np.exp(-((x / 0.135) ** 2))
     bottom_back = 0.985 - 0.055 * np.exp(-((x / 0.135) ** 2))
-    bottom = np.where(front, bottom_front, bottom_back)
-    inside = (y >= bottom) & (y <= top) & (np.abs(x) <= 0.235) & mask
-    m = inside.astype(np.float32)
+    # Blend the two openings across the side instead of switching on z: a hard
+    # switch leaves a 14 mm step in the leg opening at each hip.
+    blend = np.clip((z + 0.06) / 0.12, 0.0, 1.0)
+    bottom = bottom_back + (bottom_front - bottom_back) * blend
+    # The brief wraps the pelvis: a generous elliptical cross-section in (x, z) cut by
+    # a curved leg opening and a straight waistband. The section must be *wider than
+    # the hip crease*, otherwise the concave fold leaves and re-enters it and the
+    # garment develops notches at the front of each hip.
+    cross = (x / 0.245) ** 2 + ((z - 0.01) / 0.42) ** 2
+    inside = (cross <= 1.0) & (y >= bottom) & (y <= top) & mask
+    m = inside.astype(np.uint8)
+
+    # UV seams produce one-texel spikes along the cut. Close them before softening.
+    def morph(src, op, r=1):
+        pad = np.pad(src, r, mode="edge")
+        h, w = src.shape
+        stack = [pad[i:i + h, j:j + w] for i in range(2 * r + 1) for j in range(2 * r + 1)]
+        return (np.maximum.reduce(stack) if op == "max" else np.minimum.reduce(stack))
+
+    m = morph(morph(m, "max"), "min").astype(np.float32)
     # soften the edge slightly (1px) so the shader cut never aliases
     k = np.array([0.25, 0.5, 0.25], dtype=np.float32)
     for axis in (0, 1):

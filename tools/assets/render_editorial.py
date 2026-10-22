@@ -308,7 +308,7 @@ HERO_ATLAS = [
 ]
 HERO_IRIS = [
     {"id": "orchid-line", "region": "forearm-r", "size": 0.18, "offset": (0, 0.1), "rot": -10},
-    {"id": "peony-veil", "region": "thigh-l", "size": 0.22, "offset": (0, 0.15)},
+    {"id": "peony-veil", "region": "thigh-l", "size": 0.2, "offset": (-0.16, -0.66)},
     {"id": "sun-moon", "region": "shoulder-l", "size": 0.1, "offset": (0, 0)},
     {"id": "sacred-grid", "region": "upper-back", "size": 0.3, "offset": (0, 0)},
 ]

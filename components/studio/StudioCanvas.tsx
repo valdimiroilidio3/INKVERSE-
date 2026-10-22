@@ -1,7 +1,8 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { Component, type ReactNode, useCallback, useState } from 'react';
+import { Component, type ReactNode, useCallback, useEffect, useState } from 'react';
+import { useProgress } from '@react-three/drei';
 import { Minus, Plus, RotateCcw, ScanLine } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { REGION_LABELS } from '@/lib/regions';
@@ -25,6 +26,20 @@ class SceneErrorBoundary extends Component<{ children: ReactNode; fallback: Reac
 
   override render() {
     return this.state.failed ? this.props.fallback : this.props.children;
+  }
+}
+
+/**
+ * Cheap capability probe: R3F throws deep inside the renderer when no context can be
+ * created, which leaves a black rectangle. Checking first gives an honest message.
+ */
+function webglAvailable(): boolean {
+  try {
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl2') ?? canvas.getContext('webgl');
+    return Boolean(gl);
+  } catch {
+    return false;
   }
 }
 
@@ -56,6 +71,23 @@ export function StudioCanvas({
   const [ready, setReady] = useState(false);
   const [api, setApi] = useState<SceneApi | null>(null);
   const [failed, setFailed] = useState(false);
+  const [supported, setSupported] = useState<boolean | null>(null);
+  const [degraded, setDegraded] = useState(false);
+  const [slow, setSlow] = useState(false);
+  const { active, progress, item } = useProgress();
+
+  useEffect(() => {
+    setSupported(webglAvailable());
+  }, []);
+
+  // If nothing has rendered after 15 s, say so instead of showing a spinner forever.
+  useEffect(() => {
+    if (ready || failed || supported === false) return;
+    const timer = window.setTimeout(() => setSlow(true), 15000);
+    return () => window.clearTimeout(timer);
+  }, [ready, failed, supported]);
+
+  const loading = !ready || (active && progress < 100);
 
   const handleReady = useCallback(
     (canvas: HTMLCanvasElement) => {
@@ -74,13 +106,28 @@ export function StudioCanvas({
     >
       <div className="pointer-events-none absolute inset-0 opacity-[0.06] [background-image:linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] [background-size:56px_56px]" />
 
-      {failed ? (
+      {supported === false ? (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-8 text-center">
           <ScanLine className="size-6 text-mist" strokeWidth={1.2} />
           <p className="max-w-xs text-sm leading-relaxed text-mist">
-            WebGL could not start in this browser. The gallery and saved designs still work — try a recent version of
-            Chrome, Safari or Firefox with hardware acceleration enabled.
+            This browser has WebGL disabled, so the 3D studio cannot start. The gallery and saved designs still work.
+            Enable hardware acceleration or open the studio in a recent Chrome, Edge, Safari or Firefox.
           </p>
+        </div>
+      ) : failed ? (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-8 text-center">
+          <ScanLine className="size-6 text-mist" strokeWidth={1.2} />
+          <p className="max-w-xs text-sm leading-relaxed text-mist">
+            The 3D scene could not start — the character model or its maps failed to load, or the GPU context was
+            lost. Reload to try again; the rest of the site keeps working.
+          </p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-1 inline-flex h-9 items-center border border-white/20 px-4 font-mono text-[10px] uppercase tracking-[0.16em] text-paper hover:border-acid hover:text-acid"
+          >
+            Reload
+          </button>
         </div>
       ) : (
         <SceneErrorBoundary
@@ -105,13 +152,31 @@ export function StudioCanvas({
             onApi={setApi}
             onReady={handleReady}
             onError={() => setFailed(true)}
+            onDegraded={() => setDegraded(true)}
           />
         </SceneErrorBoundary>
       )}
 
-      {!ready && !failed ? (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-ink-900/60">
-          <LoadingState label="Loading character & skin maps" />
+      {supported !== false && loading ? (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-ink-900/55">
+          {slow ? (
+            <div className="pointer-events-auto max-w-xs px-6 text-center">
+              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-mist">Still loading</p>
+              <p className="mt-2 text-xs leading-relaxed text-mist/80">
+                {item ? `Waiting on ${item.split('/').pop()}` : 'Waiting on the GPU'}
+                {progress > 0 ? ` · ${Math.round(progress)}%` : ''}
+              </p>
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="mt-3 inline-flex h-8 items-center border border-white/20 px-3 font-mono text-[10px] uppercase tracking-[0.14em] text-paper hover:border-acid hover:text-acid"
+              >
+                Reload
+              </button>
+            </div>
+          ) : (
+            <LoadingState label={item ? `Loading ${item.split('/').pop()}` : 'Loading character & skin maps'} />
+          )}
         </div>
       ) : null}
 
@@ -159,9 +224,25 @@ export function StudioCanvas({
         </button>
       </div>
 
-      <div className="pointer-events-none absolute bottom-4 left-4 flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-mist">
-        <span className={cn('size-1.5 rounded-full transition-colors', ready ? 'bg-acid' : 'bg-ink-500')} />
-        {compare ? 'Ink hidden — comparison mode' : 'Ink live on surface'}
+      <div className="pointer-events-none absolute bottom-4 left-4 flex max-w-[70%] flex-col gap-1 text-[10px] uppercase tracking-[0.16em] text-mist">
+        <span className="flex items-center gap-2">
+          <span
+            className={cn(
+              'size-1.5 rounded-full transition-colors',
+              degraded ? 'bg-blood' : ready ? 'bg-acid' : 'bg-ink-500',
+            )}
+          />
+          {degraded
+            ? 'Ink preview unavailable — skin only'
+            : compare
+              ? 'Ink hidden — comparison mode'
+              : 'Ink live on surface'}
+        </span>
+        {degraded ? (
+          <span className="normal-case tracking-normal text-mist/70">
+            This GPU rejected the ink shader, so the body is rendered with the base skin material.
+          </span>
+        ) : null}
       </div>
     </div>
   );
