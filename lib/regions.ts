@@ -10,6 +10,9 @@ interface RawSlot {
   uvPerMeterY?: number;
   boxMeters?: number[];
   areaM2?: number;
+  anchor?: number[];
+  anchorRadius?: number;
+  square?: number[];
 }
 
 interface RawRegion {
@@ -69,6 +72,12 @@ function slotFrom(raw: RawSlot): CharacterRegionSlot | null {
     uvPerMeter: raw.uvPerMeter,
     boxMeters: [raw.boxMeters?.[0] ?? (u1 - u0) / raw.uvPerMeterX, raw.boxMeters?.[1] ?? (v1 - v0) / raw.uvPerMeterY],
     areaM2: raw.areaM2 ?? 0,
+    anchor: raw.anchor && raw.anchor.length >= 2 ? [raw.anchor[0]!, raw.anchor[1]!] : undefined,
+    anchorRadius: raw.anchorRadius,
+    square:
+      raw.square && raw.square.length >= 3
+        ? [raw.square[0]!, raw.square[1]!, raw.square[2]!]
+        : undefined,
   };
 }
 

@@ -11,6 +11,25 @@ export const ATLAS_GRID = 4;
 export const ATLAS_TILE = ATLAS_SIZE / ATLAS_GRID;
 export const ATLAS_TILES = ATLAS_GRID * ATLAS_GRID;
 
+/**
+ * UV of the atlas for a point inside a design, and the contract the shader obeys.
+ *
+ * The atlas is a CanvasTexture drawn with canvas coordinates (row 0 = top) and
+ * uploaded with `flipY = false`, so in texture space v=0 is the first canvas row.
+ * Tile `t` is drawn at column `t % 4`, row `floor(t / 4)`, therefore:
+ *
+ *   u = (t % 4) / 4 + qx / 4
+ *   v = floor(t / 4) / 4 + (1 − qy) / 4        (qy = 1 is the top of the artwork)
+ *
+ * `q` runs 0…1 across the placed square, q.y upwards. The skin shader repeats
+ * this expression inline (`inkDensityAt`); `tests/ink.test.ts` guards both.
+ */
+export function atlasUvFor(tile: number, qx: number, qy: number): [number, number] {
+  const col = tile % ATLAS_GRID;
+  const row = Math.floor(tile / ATLAS_GRID);
+  return [(col + qx) / ATLAS_GRID, (row + (1 - qy)) / ATLAS_GRID];
+}
+
 const cache = new Map<string, HTMLImageElement>();
 
 export function loadInkImage(url: string): Promise<HTMLImageElement> {
@@ -95,9 +114,16 @@ export function buildInkAtlas(
         px[i + 3] = 255;
         continue;
       }
-      const lum = (0.2126 * px[i]! + 0.7152 * px[i + 1]! + 0.0722 * px[i + 2]!) / 255;
-      // dark ink -> high density, paper -> ~0
-      const density = Math.max(0, Math.min(1, (1 - lum) * a));
+      // Composite the (premultiplied) artwork onto white paper before measuring
+      // luminance. Reading the raw channels lets the transparent margin of a design
+      // carry colour, which turns clean line work into speckle once it is sampled at
+      // skin scale.
+      const r = px[i]! * a + 255 * (1 - a);
+      const g = px[i + 1]! * a + 255 * (1 - a);
+      const b = px[i + 2]! * a + 255 * (1 - a);
+      const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+      // dark ink -> high density, paper -> 0
+      const density = Math.max(0, Math.min(1, 1 - lum));
       const v = Math.round(density * 255);
       px[i] = v;
       px[i + 1] = v;

@@ -63,6 +63,36 @@ def seg_dist(p, a, b):
     return np.linalg.norm(p - (a + t[:, None] * ab), axis=1), t
 
 
+def fill_id_seams(reg, passes=3):
+    """Close the 1-px seams between UV triangles.
+
+    Neighbouring triangles are rasterised independently, so their shared edge can
+    fall between two texel centres and stay unassigned. The shader treats id 0 as
+    "no zone" and drops the ink there, which showed up as speckled artwork.
+    Each pass lets an unassigned texel adopt the majority id of its neighbours.
+    """
+    reg = reg.copy()
+    for _ in range(passes):
+        zero = reg == 0
+        if not zero.any():
+            return reg
+        pad = np.pad(reg, 1, mode="edge")
+        neighbours = np.stack([
+            pad[0:-2, 1:-1], pad[2:, 1:-1], pad[1:-1, 0:-2], pad[1:-1, 2:],
+            pad[0:-2, 0:-2], pad[0:-2, 2:], pad[2:, 0:-2], pad[2:, 2:],
+        ])
+        best = np.zeros_like(reg)
+        best_count = np.zeros(reg.shape, dtype=np.int16)
+        for k in range(neighbours.shape[0]):
+            value = neighbours[k]
+            count = (neighbours == value).sum(axis=0).astype(np.int16)
+            take = (value > 0) & (count > best_count)
+            best[take] = value[take]
+            best_count[take] = count[take]
+        reg = np.where(zero & (best > 0), best, reg)
+    return reg
+
+
 def classify(pos, kind):
     """Nearest-bone classification -> anatomical region index per vertex."""
     j = {k: np.array(v) for k, v in RIG[kind]["joints"].items()}
@@ -76,6 +106,9 @@ def classify(pos, kind):
         ("head", j["neck"] + np.array([0, -0.02, 0]), j["head_top"]),
         ("torso", j["spine4"], j["spine1"]),
     ]
+    # The head bone starts just under the neck joint, so shoulder-blade vertices were
+    # closer to it than to the spine and got labelled "head".
+    head_floor = float(j["neck"][1]) - 0.02
     for side in ("l", "r"):
         bones += [
             (f"arm-{side}", j[f"shoulder_{side}"], j[f"elbow_{side}"]),
@@ -100,7 +133,10 @@ def classify(pos, kind):
     for i, (name, _, _) in enumerate(bones):
         if name is None or name not in ID_INDEX:
             continue
-        lab[nearest == i] = ID_INDEX[name]
+        take = nearest == i
+        if name == "head":
+            take &= pos[:, 1] >= head_floor
+        lab[take] = ID_INDEX[name]
 
     x, y, z = pos[:, 0], pos[:, 1], pos[:, 2]
     # torso -> chest / abdomen / upper-back / lower-back
@@ -139,10 +175,14 @@ def classify(pos, kind):
     neck = (y > 1.585) & (y < 1.70) & (np.abs(x) < 0.12)
     lab[neck] = ID_INDEX["head"]
 
-    # anything still unassigned that sits high on the body falls back to the nearest torso zone
+    # Anything still unassigned falls back to the nearest torso zone — but it must
+    # pick a zone on the correct side of the body. Ignoring z here filed the whole
+    # back under "chest", which is why the upper back had almost no paintable area.
     rest = lab == 0
-    lab[rest & (y > 1.27)] = ID_INDEX["chest"]
-    lab[rest & (y <= 1.27) & (y > 1.0) & ~groin] = ID_INDEX["abdomen"]
+    lab[rest & (y > 1.27) & (z > 0.0)] = ID_INDEX["chest"]
+    lab[rest & (y > 1.27) & (z <= 0.0)] = ID_INDEX["upper-back"]
+    lab[rest & (y <= 1.27) & (y > 1.0) & (z > 0.0) & ~groin] = ID_INDEX["abdomen"]
+    lab[rest & (y <= 1.27) & (y > 1.0) & (z <= 0.0) & ~groin] = ID_INDEX["lower-back"]
     return lab
 
 
@@ -279,6 +319,7 @@ def main():
         all_meta[kind] = meta
 
         # region id texture (R = region index) for the 3D masking + highlight
+        reg = fill_id_seams(reg)
         rgba = np.zeros((MASK_SIZE, MASK_SIZE, 3), dtype=np.uint8)
         rgba[..., 0] = reg
         rgba[..., 1] = np.where(reg > 0, 255, 0)

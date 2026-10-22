@@ -74,6 +74,12 @@ export interface CharacterRegionSlot {
   uvPerMeter: number;
   boxMeters: [number, number];
   areaM2: number;
+  /** Deepest interior point of this UV island — where artwork is centred. */
+  anchor?: [number, number];
+  /** Largest inscribed radius around the anchor, in UV units. */
+  anchorRadius?: number;
+  /** Largest square fully inside this zone: [centreU, centreV, halfSide]. */
+  square?: [number, number, number];
 }
 
 export interface CharacterRegion {

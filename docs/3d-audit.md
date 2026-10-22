@@ -218,7 +218,81 @@ probe and the degraded banner exist precisely because that frame could not be ve
 
 ---
 
-## 5. Remaining limitations
+## 5. "Try in 3D studio" — what was broken
+
+The studio is only working if the button on a design page lands the artwork on the
+body, visibly, on the zone the page promised. Four separate faults broke that chain.
+
+### T1 — No tattoo was ever drawn (critical)
+
+`inkDensityAt()` computed `atlasUv = (tileOrigin.x + q.x·0.25, 1 − tileOrigin.y − 0.25 + q.y·0.25)`.
+The atlas is a `CanvasTexture` with `flipY = false`, so v runs top-down with canvas
+rows and tile 0 occupies rows 0–511. The shipped formula sampled **rows 1536–2048**
+— the empty half of the texture. Every design rendered as bare skin.
+
+*Fix:* `atlasUv = (tileOrigin.x + q.x·0.25, tileOrigin.y + (1 − q.y)·0.25)`, mirrored by
+`atlasUvFor()` in `lib/atlas.ts` and guarded by `tests/ink.test.ts` plus an
+end-to-end probe that renders the shader path on a real atlas.
+
+### T2 — Designs landed on the wrong part of the body (critical)
+
+Placement centred artwork on the **bounding box centre** of the region's UV box.
+Because UV islands of different body parts share that box, the centre often fell
+outside the zone: `upper-back` centred on the chest, `lower-back` on the abdomen,
+`hand-*` in the gap between islands. The shader's region gate then discarded every
+fragment, so the layer existed and nothing was painted.
+
+*Fix:* every slot now carries `anchor` — the interior point measured from the
+shipped id map — and placement is centred there.
+
+### T3 — The upper back was labelled as chest (critical)
+
+`classify()` ended with an orientation-blind fallback: *anything unassigned above
+y = 1.27 becomes chest*, and the head bone reached down to the shoulder blades.
+Measurements on the back of the torso: **24 % head, 56 % upper back** before the fix;
+**1 % head, 79 % upper back** after. This also decided which zone a click selected.
+
+*Fix:* the fallback respects `z` (front vs back) and the head bone is clamped to the
+shoulder line. One-pixel UV seams are filled before the id map is written, which
+removes the speckle the shader used to punch into thin lines.
+
+### T4 — A piece bigger than the skin available (high)
+
+A 34 cm design needs 0.116 m² of skin; the upper back offers 0.087 m². The overrun
+was clipped by the region gate, leaving a fragment that read as scattered dots.
+
+*Fix:* placement is sized to the largest square inscribed in the zone's own slice of
+the id map, and centred on it. `tests/region-placement.test.ts` asserts that at least
+90 % of every default-size placement lands on its zone — measured, not assumed.
+
+### T5 — Opening the studio could do nothing visible (high)
+
+`/studio?design=…` applied the design to `recommendedRegions[0]` and left the camera
+on the front view. A back piece (Tsuru → `upper-back`) was applied behind the body.
+Repeating the click stacked duplicate layers until the eight-layer budget ran out.
+
+*Fix:* `lib/staging.ts` chooses the zone and the camera together — the first
+recommended zone the opening view can show, otherwise the first usable zone with the
+camera that reveals it. A design already on the body is selected instead of duplicated.
+When the layer budget is full the studio says so instead of silently failing.
+
+### Verified
+
+| Check | Result |
+| --- | --- |
+| `tsc --noEmit` | clean |
+| `vitest run` | **54/54** (7 files, incl. 5 new ink-atlas tests and 5 placement tests) |
+| GLSL injection parse + ordering | 5/5 |
+| `anchor-probe` — every slot anchor on its own id | 46/46 |
+| `scene-audit` | 0 errors, 0 warnings |
+| `next build` | 38/38 static pages |
+
+**Not verified:** the live WebGL frame. This sandbox has no GPU or browser, so the
+shader path is proven by rendering the same maths on the same atlas pixels, not by
+looking at the canvas. The back zones remain limited to roughly an 11 cm piece — that
+is the atlas layout in the source asset, not a placement bug, and is listed below.
+
+## 6. Remaining limitations
 
 1. Both characters share one base mesh and one UV layout; differentiation is morph-based, not sculpted.
 2. No skeleton or facial rig — the A-pose and the neutral face are fixed.
@@ -226,8 +300,11 @@ probe and the degraded banner exist precisely because that frame could not be ve
 4. Shadow map is 1024 px and baked contact shadows do not follow the body while it orbits.
 5. Textures are WebP; no KTX2/BC7, so mobile pays full decode cost.
 6. Tattoos are projected through region UV boxes; they do not wrap around silhouette edges.
+7. The back zones occupy a narrow strip of the shared UV atlas, capping a back piece at
+   ~11 cm. Fixing it means re-unwrapping the mesh, which changes every stored placement —
+   the same trade-off as raising the tattoo atlas to 4K (tiles grow 512 → 1024 px).
 
-## 6. Highest-value next steps
+## 7. Highest-value next steps
 
 1. Per-character height and proportion (Iris at ~1.72 m) so the studio's framing rule has to become
    per-character — the contract already supports it.

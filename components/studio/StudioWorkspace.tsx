@@ -32,6 +32,7 @@ import { getDesign } from '@/lib/tattoos';
 import { formatPlacementSize } from '@/lib/placement';
 import type { AppliedTattoo, CharacterModel, StudioView } from '@/lib/types';
 import { MAX_TATTOOS } from '@/lib/schemas';
+import { planStaging, stagingMessage } from '@/lib/staging';
 import { selectValidTattoos, useStudioStore } from '@/store/studio';
 import { useLibraryStore } from '@/store/library';
 
@@ -124,11 +125,31 @@ export function StudioWorkspace() {
     if (requestedDesign) {
       const design = getDesign(requestedDesign);
       if (design) {
-        const preferred = design.recommendedRegions[0];
-        const target = preferred ?? 'forearm-l';
-        useStudioStore.getState().setRegion(target);
-        useStudioStore.getState().addTattoo(design.id, target);
-        toast.push(`${design.name} staged in the studio.`, 'success');
+        const store = useStudioStore.getState();
+        const plan = planStaging({
+          design,
+          supportedRegions: getCharacter(store.characterId).supportedRegions,
+          tattoos: store.tattoos,
+          maxTattoos: MAX_TATTOOS,
+          characterId: store.characterId,
+        });
+
+        // Always reveal the zone: a piece applied to the upper back is invisible
+        // from the front camera, which reads as "the studio did nothing".
+        if (plan.regionId) store.setRegion(plan.regionId);
+        store.setView(plan.view);
+
+        if (plan.status === 'already-applied') {
+          store.selectTattoo(plan.existingId ?? null);
+        } else if (plan.status === 'placed' && plan.regionId) {
+          store.addTattoo(design.id, plan.regionId);
+        }
+
+        const label = plan.regionId ? REGION_LABELS[plan.regionId] ?? plan.regionId : 'body';
+        toast.push(
+          stagingMessage(plan, design, label),
+          plan.status === 'placed' ? 'success' : plan.status === 'full' || plan.status === 'no-zone' ? 'error' : 'info',
+        );
       }
     }
   }, [hydrated, setCharacter, toast]);

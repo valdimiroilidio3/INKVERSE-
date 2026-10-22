@@ -47,6 +47,28 @@ export function computePlacement({
   let shrink = 1;
   if (extentX > maxX) shrink = Math.min(shrink, maxX / extentX);
   if (extentY > maxY) shrink = Math.min(shrink, maxY / extentY);
+
+  // A UV bounding box ignores the shape of the zone: the back's box also spans the
+  // chest, so it never limits anything. The limiting shape is the largest square
+  // that lies entirely inside this zone's slice of the id map. Sizing to it means
+  // the region gate never has to chop the artwork: a piece is either complete or
+  // smaller. (Sizing to the bounding box instead produced pieces with a third of
+  // their lines missing — see docs/3d-audit.md.)
+  // The artwork is centred on the zone's own interior point, so its half-extents
+  // must fit the largest square inscribed in that zone. Sizing to it means the
+  // region gate has nothing to clip: a piece is either complete or smaller.
+  const square = slot.square;
+  const anchorUv = square ? [square[0], square[1]] : (slot.anchor ?? [u0 + boxW / 2, v0 + boxH / 2]);
+  const halfSide = square
+    ? square[2]
+    : Math.min(
+        // no measured square: fall back to the anchor's inscribed radius
+        slot.anchorRadius ?? Math.min(anchorUv[0]! - u0, u1 - anchorUv[0]!, anchorUv[1]! - v0, v1 - anchorUv[1]!),
+        Math.min(anchorUv[0]! - u0, u1 - anchorUv[0]!, anchorUv[1]! - v0, v1 - anchorUv[1]!),
+      );
+  const fit = Math.min(halfSide / Math.max(hx, 1e-6), halfSide / Math.max(hy, 1e-6));
+  if (fit < 1) shrink = Math.min(shrink, fit);
+
   const clamped = shrink < 0.999;
   if (clamped) {
     hx *= shrink;
@@ -60,9 +82,13 @@ export function computePlacement({
   const ox = clamp(offset[0], -1, 1);
   const oy = clamp(offset[1], -1, 1);
 
+  // Centre on the zone's interior, not on the bounding-box centre: for the back and
+  // the hands the box centre falls in the gap between UV islands, where the region
+  // gate rejects every fragment and the tattoo disappears entirely.
+  const [bx, by] = anchorUv as [number, number];
   const center: [number, number] = [
-    clamp(u0 + boxW / 2 + ox * slackX, u0 + ex, u1 - ex),
-    clamp(v0 + boxH / 2 + oy * slackY, v0 + ey, v1 - ey),
+    clamp(bx + ox * slackX, u0 + ex, u1 - ex),
+    clamp(by + oy * slackY, v0 + ey, v1 - ey),
   ];
 
   return {

@@ -14,6 +14,7 @@ ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 REGIONS_PATH = os.path.join(ROOT, "public", "models", "regions.json")
 DATA_PATH = os.path.join(ROOT, "data", "regions.json")
 sys.path.insert(0, HERE)
+from PIL import Image  # noqa: E402
 from bake_regions import classify, IDS, ID_INDEX  # noqa: E402
 
 
@@ -41,6 +42,102 @@ def uv_islands(pos, uv, tris):
     for t in tris:
         union(t[0], t[1]); union(t[1], t[2])
     return np.array([find(i) for i in range(len(pos))])
+
+
+def rasterise_faces(uv, faces, size=256):
+    """Binary mask of the UV footprint of `faces`, at `size`²."""
+    m = np.zeros((size, size), dtype=bool)
+    for f in faces:
+        a, b, c = uv[f[0]], uv[f[1]], uv[f[2]]
+        xs = np.array([a[0], b[0], c[0]]) * (size - 1)
+        ys = (1.0 - np.array([a[1], b[1], c[1]])) * (size - 1)
+        minx, maxx = int(np.floor(xs.min())), int(np.ceil(xs.max()))
+        miny, maxy = int(np.floor(ys.min())), int(np.ceil(ys.max()))
+        minx, miny = max(0, minx), max(0, miny)
+        maxx, maxy = min(size - 1, maxx), min(size - 1, maxy)
+        if maxx < minx or maxy < miny:
+            continue
+        X, Y = np.meshgrid(np.arange(minx, maxx + 1) + 0.5, np.arange(miny, maxy + 1) + 0.5)
+        det = (ys[1] - ys[2]) * (xs[0] - xs[2]) + (xs[2] - xs[1]) * (ys[0] - ys[2])
+        if abs(det) < 1e-12:
+            continue
+        w0 = ((ys[1] - ys[2]) * (X - xs[2]) + (xs[2] - xs[1]) * (Y - ys[2])) / det
+        w1 = ((ys[2] - ys[0]) * (X - xs[2]) + (xs[0] - xs[2]) * (Y - ys[2])) / det
+        w2 = 1 - w0 - w1
+        m[miny:maxy + 1, minx:maxx + 1] |= (w0 >= -0.002) & (w1 >= -0.002) & (w2 >= -0.002)
+    return m
+
+
+def pole_of_inaccessibility(mask, size=256):
+    """Centre of the largest inscribed disc: the safest spot for artwork.
+
+    A plain bounding-box centre can fall in a hole between UV islands (the back and
+    the chest boxes overlap in UV), which makes the shader's region gate discard the
+    whole tattoo. The deepest interior point always belongs to the island.
+    """
+    if not mask.any():
+        return None, 0.0
+
+    INF = 1e9
+    dist = np.where(mask, INF, 0.0)
+    xo = np.array([[1.0, 0.0], [-1.0, 0.0], [0.0, 1.0], [0.0, -1.0],
+                   [1.0, 1.0], [1.0, -1.0], [-1.0, 1.0], [-1.0, -1.0]])
+
+    def shift(arr, dy, dx, fill):
+        dy, dx = int(dy), int(dx)
+        out = np.full_like(arr, fill)
+        ys = slice(max(0, dy), arr.shape[0] + min(0, dy))
+        xs = slice(max(0, dx), arr.shape[1] + min(0, dx))
+        yd = slice(max(0, -dy), arr.shape[0] + min(0, -dy))
+        xd = slice(max(0, -dx), arr.shape[1] + min(0, -dx))
+        out[ys, xs] = arr[yd, xd]
+        return out
+
+    for _ in range(2 * size):
+        prev = dist
+        for dy, dx in xo:
+            step = 1.4142 if (dy and dx) else 1.0
+            dist = np.minimum(dist, shift(dist, dy, dx, INF) + step)
+        dist = np.where(mask, dist, 0.0)
+        if np.array_equal(prev, dist):
+            break
+
+    best = np.unravel_index(int(np.argmax(dist)), dist.shape)
+    y, x = int(best[0]), int(best[1])
+    radius = float(dist[best]) / (size - 1)
+    return ((x + 0.5) / (size - 1), 1.0 - (y + 0.5) / (size - 1)), radius
+
+
+def largest_inscribed_square(mask):
+    """Largest axis-aligned square fully inside `mask`.
+
+    Returns (cx, cy, half) in UV, or None. Classic DP: dp[y][x] is the side of the
+    biggest square whose bottom-right corner is (x, y). A square that is entirely
+    inside the zone is the only way to place artwork without the shader's region
+    gate chopping it — UV islands of other body parts overlap the same texture area.
+    """
+    h, w = mask.shape
+    dp = np.zeros((h, w), dtype=np.int32)
+    best, best_pos = 0, (0, 0)
+    for y in range(h):
+        row = mask[y]
+        for x in range(w):
+            if not row[x]:
+                continue
+            if x == 0 or y == 0:
+                dp[y, x] = 1
+            else:
+                dp[y, x] = min(dp[y - 1, x], dp[y, x - 1], dp[y - 1, x - 1]) + 1
+            if dp[y, x] > best:
+                best = dp[y, x]
+                best_pos = (x, y)
+    if best == 0:
+        return None
+    x, y = best_pos
+    side = best
+    cx = (x - side / 2 + 0.5) / (w - 1)
+    cy = 1.0 - (y - side / 2 + 0.5) / (h - 1)
+    return cx, cy, (side / 2) / (w - 1)
 
 
 def main():
@@ -75,6 +172,24 @@ def main():
         ku_face = np.where(len_u > 1e-8, 1.0 / len_u, np.nan)
         kv_face = np.where(len_v > 1e-8, 1.0 / len_v, np.nan)
 
+        # The id map that ships with the app is the authority: it is exactly what the
+        # shader samples, so anchors derived from it are guaranteed paintable.
+        id_img = Image.open(os.path.join(ROOT, "public", "models", f"region-ids-{kind}.png")).convert("RGB")
+        id_png = np.asarray(id_img)[..., 0]
+        ph, pw = id_png.shape
+
+        def id_at(u, v):
+            x = min(pw - 1, max(0, int(round(u * (pw - 1)))))
+            y = min(ph - 1, max(0, int(round((1 - v) * (ph - 1)))))
+            return int(id_png[y, x])
+
+        # 256² nearest-neighbour copy of the id map: same orientation as the texture
+        id_small = np.asarray(
+            Image.open(os.path.join(ROOT, "public", "models", f"region-ids-{kind}.png"))
+            .convert("L")
+            .resize((256, 256), Image.NEAREST)
+        ).astype(np.int16)
+
         meta = payload["characters"][kind]
         for name in IDS:
             if name not in meta:
@@ -104,7 +219,40 @@ def main():
                     round((b[2] - b[0]) / max(ku, 1e-6), 4),
                     round((b[3] - b[1]) / max(kv, 1e-6), 4),
                 ]
-                print(f"  [{kind}] {name:12s} k=({ku:5.2f},{kv:5.2f})  box={slot['boxMeters']} m  area={slot['areaM2']} m2")
+                # Anchor inside the faces that carry this region's id. The UV island
+                # alone is too coarse: the back's island also contains the chest and
+                # head, so its "deepest point" can land on another body part.
+                mask = rasterise_faces(uv, tris[faces])
+                # Keep only the part of the island that carries this region's id.
+                yy, xx = np.nonzero(mask)
+                keep = np.zeros_like(mask)
+                for py_, px_ in zip(yy, xx):
+                    u = px_ / (mask.shape[1] - 1)
+                    v = 1.0 - py_ / (mask.shape[0] - 1)
+                    if id_at(u, v) == idx:
+                        keep[py_, px_] = True
+                if keep.any():
+                    mask = keep
+                anchor, radius = pole_of_inaccessibility(mask)
+                square = largest_inscribed_square(mask)
+
+                # The zone can be split across several UV islands (the upper back has a
+                # wide patch and a narrow strip). Search the whole footprint as well and
+                # keep whichever gives the bigger paintable square.
+                footprint = id_small == idx
+                wide = largest_inscribed_square(footprint)
+                if wide is not None and (square is None or wide[2] > square[2]):
+                    square = wide
+                if square is not None:
+                    slot["square"] = [round(float(square[0]), 4), round(float(square[1]), 4), round(float(square[2]), 4)]
+                if anchor is not None:
+                    slot["anchor"] = [round(float(anchor[0]), 4), round(float(anchor[1]), 4)]
+                    slot["anchorRadius"] = round(float(radius), 4)
+                print(
+                    f"  [{kind}] {name:12s} k=({ku:5.2f},{kv:5.2f})  box={slot['boxMeters']} m  "
+                    f"area={slot['areaM2']} m2  anchor={slot.get('anchor')} r={slot.get('anchorRadius')} "
+                    f"square={slot.get('square')}"
+                )
             # drop slot entries we could not map
             meta[name]["slots"] = [s for s in meta[name]["slots"] if "uvPerMeter" in s]
 

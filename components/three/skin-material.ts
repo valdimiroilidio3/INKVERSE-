@@ -100,9 +100,11 @@ float inkDensityAt(vec2 uv, int i) {
   if (abs(region - uInkRegion[i]) > 0.6) return 0.0;
   float tile = uInkTile[i];
   vec2 tileOrigin = vec2(mod(tile, 4.0), floor(tile / 4.0)) * 0.25;
-  // The atlas is uploaded with flipY = false, so texture coords run top-down in canvas
-  // space while the design's q.y runs bottom-up. Mirror q.y inside the tile.
-  vec2 atlasUv = vec2(tileOrigin.x + q.x * 0.25, 1.0 - tileOrigin.y - 0.25 + q.y * 0.25);
+  // The atlas is a CanvasTexture with flipY = false, so v runs top-down with the
+  // canvas rows: tile row r occupies v ∈ [r/4, (r+1)/4] and q.y = 1 (the top of the
+  // artwork) is the *first* row. Keep in sync with atlasUv() in lib/atlas.ts —
+  // tools/checks/ink-probe.mjs renders this path and fails if it drifts.
+  vec2 atlasUv = vec2(tileOrigin.x + q.x * 0.25, tileOrigin.y + (1.0 - q.y) * 0.25);
   return texture2D(uInkAtlas, atlasUv).r;
 }
 

@@ -49,19 +49,36 @@ def placement(slot, size_m, offset=(0.0, 0.0), rot=0.0):
         shrink = min(shrink, bw * 0.49 / ex)
     if ey > bh * 0.49:
         shrink = min(shrink, bh * 0.49 / ey)
+    # mirror the inscribed-square cap in lib/placement.ts
+    sq = slot.get("square")
+    if sq:
+        half_side = sq[2]
+    else:
+        a = slot.get("anchor", (u0 + bw / 2, v0 + bh / 2))
+        half_side = min(a[0] - u0, u1 - a[0], a[1] - v0, v1 - a[1])
+    fit = min(half_side / max(hx, 1e-6), half_side / max(hy, 1e-6))
+    if fit < 1:
+        shrink = min(shrink, fit)
+        hx, hy = hx * fit, hy * fit
     hx, hy = hx * shrink, hy * shrink
     ex, ey = hx * c + hy * s, hx * s + hy * c
-    cx = u0 + bw / 2 + offset[0] * max(0.0, bw / 2 - ex)
-    cy = v0 + bh / 2 + offset[1] * max(0.0, bh / 2 - ey)
+    # mirror lib/placement.ts: centre on the island interior, not the box centre
+    sq = slot.get("square")
+    bx, by = (sq[0], sq[1]) if sq else slot.get("anchor", (u0 + bw / 2, v0 + bh / 2))
+    # artwork intentionally overruns the zone; the app clips it with the region map
+    cx = bx + offset[0] * max(0.0, bw / 2 - ex)
+    cy = by + offset[1] * max(0.0, bh / 2 - ey)
     return (cx, cy, hx, hy)
 
 
 def load_density(path):
     img = Image.open(path).convert("RGBA")
     a = np.asarray(img).astype(np.float32) / 255.0
-    lum = 0.2126 * a[..., 0] + 0.7152 * a[..., 1] + 0.0722 * a[..., 2]
-    d = np.clip((1.0 - lum) * a[..., 3], 0, 1)
-    return d
+    alpha = a[..., 3:4]
+    # composite onto white paper, then invert: paper = no ink (mirrors lib/atlas.ts)
+    rgb = a[..., :3] * alpha + (1.0 - alpha)
+    lum = 0.2126 * rgb[..., 0] + 0.7152 * rgb[..., 1] + 0.0722 * rgb[..., 2]
+    return np.clip(1.0 - lum, 0, 1)
 
 
 def sample(img, u, v):
