@@ -5,7 +5,7 @@
   "description": "INKVERSE\u00ae \u2014 Premium 3D Tattoo Discovery & Virtual Try-On",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "NEXT_DIST_DIR=.next-build next build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
@@ -16,7 +16,8 @@
     "assets:tattoos": "python3 tools/assets/tattoos_src.py && node tools/assets/rasterize.mjs",
     "check": "npm run typecheck && npm run test && node tools/checks/check_shader.mjs && node tools/checks/ink-uv-probe.mjs && npx tsx tools/checks/ink-placement-probe.ts male && npx tsx tools/checks/ink-placement-probe.ts female",
     "assets:regions": "python3 tools/assets/bake_regions.py && python3 tools/assets/region_metrics.py",
-    "assets:editorial": "python3 tools/assets/render_editorial.py all"
+    "assets:editorial": "python3 tools/assets/render_editorial.py all",
+    "build:deploy": "NEXT_DIST_DIR=.next next build"
   },
   "dependencies": {
     "@fontsource/instrument-serif": "^5.3.0",

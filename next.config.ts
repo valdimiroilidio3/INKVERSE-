@@ -1,7 +1,12 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  // keep verification builds out of the directory the dev server is using
+  // A production build must never write into the directory the dev server is using:
+  // `next build` over a live `.next` leaves dev serving HTML that points at chunks
+  // which no longer exist -- every page answers 200, every script 404s and the
+  // /tattoos/[slug] route throws MODULE_NOT_FOUND. `npm run build` therefore writes
+  // to `.next-build`; use `npm run build:deploy` (or NEXT_DIST_DIR=.next) when the
+  // output really is the deployable build.
   distDir: process.env.NEXT_DIST_DIR || '.next',
   reactStrictMode: true,
   poweredByHeader: false,
