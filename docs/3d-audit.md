@@ -182,7 +182,11 @@ The canvas is composited over `#0b0b0c` before `toDataURL`, so downloads are fra
 ## 4. Validation
 
 `lib/scene-audit.ts` turns the contract into checks with severities; `tools/checks/scene-audit.ts` runs
-them from the CLI and exits non-zero on any error.
+them from the CLI and exits non-zero on any error:
+
+```
+npx tsx tools/checks/scene-audit.ts
+```
 
 | Check | Severity |
 | --- | --- |
