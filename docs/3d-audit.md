@@ -347,7 +347,7 @@ piece is placed, the faces inside its square are collected, and their skin area 
 | leg | 28.7 | 28.7 | 28.0 / 28.2 |
 
 The back limit was never the chart. With the snake removed, `upper-back` is a 0.32 × 0.38 m
-rectangle **filled to 72 %** and still only fits a 20.9 cm square, because the zone's own
+rectangle **filled to 72 %** and still only fits a 21.1 cm square, because the zone's own
 silhouette is a barrel: it narrows at the waist and is cut by the shoulders at the top. That is
 anatomy, and no unwrap changes it. A piece bigger than ~21 cm needs a different *region model* —
 one `back` region spanning upper and lower back, which is also how a back piece is actually
@@ -426,7 +426,7 @@ not a format change — no schema version bump was needed.
 5. Textures are WebP; no KTX2/BC7, so mobile pays full decode cost.
 6. Tattoos are projected through region UV boxes; they do not wrap around silhouette edges.
 7. Ink has its own UV set (see §5a). The remaining size limits are anatomical, not layout
-   artefacts: the upper back allows a 20.9 cm square, bounded by how the zone narrows towards
+   artefacts: the upper back allows a 21.1 cm square, bounded by how the zone narrows towards
    the waist, and the chest 21.5 cm, bounded by the clavicle. A piece cannot cross a zone
    boundary, because the region gate discards ink outside the zone — so a back piece larger
    than the upper-back zone needs the `back` region merge described in §5a, not a better unwrap.
@@ -443,3 +443,21 @@ not a format change — no schema version bump was needed.
 3. A geodesic (surface-following) ink chart for sleeves and full wraps: the current chart is a
    developable strip, so a piece that wraps more than half the limb compresses near the seam.
 4. KTX2 + Draco for the GLBs to cut first paint on mobile.
+
+---
+
+## 8. Operational pitfall — a build must not overwrite the dev server
+
+`next dev` and `next build` both write `.next`. Running a verification build while the preview was
+live replaced the dev server's chunks with production output: every page still answered **200**, but
+every `/_next/static/chunks/*.js` returned **404 (9 bytes)** and `/tattoos/[slug]` threw
+`Cannot find module './vendor-chunks/motion-dom.js'`. The site looked broken while the build and the
+test suite were both green — neither of them touches the dev server's directory.
+
+The build is now isolated: `npm run build` sets `NEXT_DIST_DIR=.next-build` (`next.config.ts` reads
+`distDir` from that variable) and `npm run build:deploy` keeps the default `.next` for a real deploy.
+Verified with dev running: build exit 0, output in `.next-build`, no `.next/BUILD_ID`, and `/studio`,
+`/explore`, `/tattoos/lunar-moth` still return 200 with every script tag returning 200.
+
+A config-level `process.env.NEXT_PHASE === 'phase-production-build'` check does **not** work — the
+build still wrote `.next`. The redirect has to happen in the npm script.
