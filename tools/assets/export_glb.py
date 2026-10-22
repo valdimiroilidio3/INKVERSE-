@@ -67,7 +67,7 @@ class GlbBuilder:
         self.accessors.append(acc)
         return len(self.accessors) - 1
 
-    def add_mesh(self, name, pos, nrm, uv, tris, material, extras=None):
+    def add_mesh(self, name, pos, nrm, uv, tris, material, extras=None, uv1=None):
         pos = np.ascontiguousarray(pos, dtype=np.float32)
         nrm = np.ascontiguousarray(nrm, dtype=np.float32)
         uv = np.ascontiguousarray(uv, dtype=np.float32)
@@ -77,6 +77,12 @@ class GlbBuilder:
             "NORMAL": self.add_accessor(nrm, COMPONENT_FLOAT, "VEC3", TARGET_ARRAY_BUFFER),
             "TEXCOORD_0": self.add_accessor(uv, COMPONENT_FLOAT, "VEC2", TARGET_ARRAY_BUFFER),
         }
+        if uv1 is not None:
+            # TEXCOORD_1 is the ink UV set: per-zone charts packed into one atlas,
+            # built by tools/assets/ink_uv.py. The skin textures keep using TEXCOORD_0.
+            attributes["TEXCOORD_1"] = self.add_accessor(
+                np.ascontiguousarray(uv1, dtype=np.float32), COMPONENT_FLOAT, "VEC2", TARGET_ARRAY_BUFFER
+            )
         indices = self.add_accessor(tris.reshape(-1), COMPONENT_USHORT, "SCALAR", TARGET_ELEMENT_ARRAY_BUFFER)
         prim = {"attributes": attributes, "indices": indices, "material": material, "mode": 4}
         mesh = {"name": name, "primitives": [prim]}
@@ -170,6 +176,7 @@ def main():
             data["tris"],
             material=0,
             extras={"characterId": kind, "vertexCount": int(len(data["pos"]))},
+            uv1=data["uv1"] if "uv1" in data else None,
         )
         eyes = merge_eyes(data)
         eye_mesh = builder.add_mesh("Eyes", *eyes, material=1, extras={"characterId": kind})

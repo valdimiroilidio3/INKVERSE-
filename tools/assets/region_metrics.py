@@ -44,7 +44,7 @@ def uv_islands(pos, uv, tris):
     return np.array([find(i) for i in range(len(pos))])
 
 
-def rasterise_faces(uv, faces, size=256):
+def rasterise_faces(uv, faces, size=512):
     """Binary mask of the UV footprint of `faces`, at `size`²."""
     m = np.zeros((size, size), dtype=bool)
     for f in faces:
@@ -68,7 +68,7 @@ def rasterise_faces(uv, faces, size=256):
     return m
 
 
-def pole_of_inaccessibility(mask, size=256):
+def pole_of_inaccessibility(mask, size=512):
     """Centre of the largest inscribed disc: the safest spot for artwork.
 
     A plain bounding-box centre can fall in a hole between UV islands (the back and
@@ -108,6 +108,25 @@ def pole_of_inaccessibility(mask, size=256):
     return ((x + 0.5) / (size - 1), 1.0 - (y + 0.5) / (size - 1)), radius
 
 
+def fill_pinholes(mask, min_neighbours=5, passes=2):
+    """Close isolated single-texel holes before measuring usable area.
+
+    A gap of one texel in a region raster is a sub-millimetre speck in the shader,
+    but it can sit exactly on the corner of the largest square and make the DP
+    report a 20 % smaller piece. Closing pinholes measures the surface, not the
+    raster noise.
+    """
+    m = mask
+    for _ in range(passes):
+        pad = np.pad(m.astype(np.int8), 1, mode="constant")
+        count = (
+            pad[:-2, 1:-1] + pad[2:, 1:-1] + pad[1:-1, :-2] + pad[1:-1, 2:]
+            + pad[:-2, :-2] + pad[:-2, 2:] + pad[2:, :-2] + pad[2:, 2:]
+        )
+        m = m | (count >= min_neighbours)
+    return m
+
+
 def largest_inscribed_square(mask):
     """Largest axis-aligned square fully inside `mask`.
 
@@ -116,6 +135,7 @@ def largest_inscribed_square(mask):
     inside the zone is the only way to place artwork without the shader's region
     gate chopping it — UV islands of other body parts overlap the same texture area.
     """
+    mask = fill_pinholes(mask)
     h, w = mask.shape
     dp = np.zeros((h, w), dtype=np.int32)
     best, best_pos = 0, (0, 0)
@@ -140,12 +160,36 @@ def largest_inscribed_square(mask):
     return cx, cy, (side / 2) / (w - 1)
 
 
+def fit_square_at(mask, u, v):
+    """Half-side of the largest square centred on (u, v) that stays inside `mask`."""
+    px = int(round(u * (mask.shape[1] - 1)))
+    py = int(round((1 - v) * (mask.shape[0] - 1)))
+    lo, hi = 2, max(2, min(mask.shape) // 2)
+    while lo < hi:
+        mid = (lo + hi + 1) // 2
+        y0, y1 = max(0, py - mid), min(mask.shape[0], py + mid + 1)
+        x0, x1 = max(0, px - mid), min(mask.shape[1], px + mid + 1)
+        win = mask[y0:y1, x0:x1]
+        if win.shape == (2 * mid + 1, 2 * mid + 1) and win.all():
+            lo = mid
+        else:
+            hi = mid - 1
+    return (lo - 0.5) / (mask.shape[1] - 1) if lo >= 2 else None
+
+
 def main():
     payload = json.load(open(REGIONS_PATH))
     for kind in ("male", "female"):
         d = np.load(os.path.join(HERE, f"{kind}.npz"))
-        pos, uv, tris = d["pos"], d["uv"], d["tris"]
-        vlab = classify(pos, kind)
+        pos, tris = d["pos"], d["tris"]
+        # Measure in the ink UV space when the asset pipeline provides it: that is the
+        # space the shader samples, so every number here describes what ships.
+        if "uv1" in d.files:
+            uv = d["uv1"]
+            vlab = d["zone"].astype(np.int16)
+        else:
+            uv = d["uv"]
+            vlab = classify(pos, kind)
         island = uv_islands(pos, uv, tris)
         face_region = np.zeros(len(tris), dtype=np.int16)
         for i, t in enumerate(tris):
@@ -183,11 +227,13 @@ def main():
             y = min(ph - 1, max(0, int(round((1 - v) * (ph - 1)))))
             return int(id_png[y, x])
 
-        # 256² nearest-neighbour copy of the id map: same orientation as the texture
+        # Low-resolution copy of the id map, same orientation as the texture. 512²
+        # over a ~2.5 m atlas is 5 mm per cell: fine enough that the reported square
+        # is not quantised in centimetres, coarse enough for the DP below.
         id_small = np.asarray(
             Image.open(os.path.join(ROOT, "public", "models", f"region-ids-{kind}.png"))
             .convert("L")
-            .resize((256, 256), Image.NEAREST)
+            .resize((512, 512), Image.NEAREST)
         ).astype(np.int16)
 
         meta = payload["characters"][kind]
@@ -210,6 +256,7 @@ def main():
                 sel = faces[good]
                 ku = float(np.nanmedian(ku_face[sel]))
                 kv = float(np.nanmedian(kv_face[sel]))
+                slot["uvPerMetreZone"] = round(0.5 * (ku + kv), 5)
                 slot["uvPerMeterX"] = round(ku, 5)
                 slot["uvPerMeterY"] = round(kv, 5)
                 slot["uvPerMeter"] = round(0.5 * (ku + kv), 5)
@@ -243,8 +290,44 @@ def main():
                 wide = largest_inscribed_square(footprint)
                 if wide is not None and (square is None or wide[2] > square[2]):
                     square = wide
+                def local_density(sq, fallback=(ku, kv)):
+                    cu, cv, ch = sq
+                    ctr = uv[tris[fsel]].mean(axis=1)
+                    near = (np.abs(ctr[:, 0] - cu) <= ch * 0.85) & (np.abs(ctr[:, 1] - cv) <= ch * 0.85)
+                    if near.sum() >= 12:
+                        return (
+                            float(np.nanmedian(ku_face[fsel][near])),
+                            float(np.nanmedian(kv_face[fsel][near])),
+                        )
+                    return fallback
+
                 if square is not None:
-                    slot["square"] = [round(float(square[0]), 4), round(float(square[1]), 4), round(float(square[2]), 4)]
+                    kx, ky = local_density(square)
+                    best_cm = (2 * square[2]) / max(0.5 * (kx + ky), 1e-9)
+                    # The DP maximises the *UV* side, but skin density varies across an
+                    # island: a slightly smaller square in a sparser spot can cover more
+                    # skin. Compare with a square centred on the deepest interior point
+                    # and keep whichever is physically bigger.
+                    if anchor is not None:
+                        ah = fit_square_at(mask, anchor[0], anchor[1])
+                        if ah:
+                            ax, ay = local_density((anchor[0], anchor[1], ah))
+                            cand = (2 * ah) / max(0.5 * (ax + ay), 1e-9)
+                            if cand > best_cm * 1.02:
+                                square = (anchor[0], anchor[1], ah)
+                                kx, ky = ax, ay
+                                best_cm = cand
+                    ku, kv = kx, ky
+                    slot["square"] = [
+                        round(float(square[0]), 4),
+                        round(float(square[1]), 4),
+                        round(float(square[2]), 4),
+                    ]
+                    # Density at the piece's own location: the zone median overstated a
+                    # "20 cm" chest piece that actually covered 16 cm of skin.
+                    slot["uvPerMeterX"] = round(ku, 5)
+                    slot["uvPerMeterY"] = round(kv, 5)
+                    slot["uvPerMeter"] = round(0.5 * (ku + kv), 5)
                 if anchor is not None:
                     slot["anchor"] = [round(float(anchor[0]), 4), round(float(anchor[1]), 4)]
                     slot["anchorRadius"] = round(float(radius), 4)

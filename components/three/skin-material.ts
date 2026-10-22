@@ -9,8 +9,14 @@ import type { ShaderTransform } from '@/lib/placement';
  * using the mesh UV atlas, so it follows curvature, folds and rotation exactly
  * like a real tattoo and can never detach from the body.
  *
+ * Ink is sampled in the dedicated ink UV set (glTF TEXCOORD_1, attribute `inkUv`)
+ * built by tools/assets/ink_uv.py: one compact chart per body region instead of the
+ * fragmented skin unwrap, so a square piece fits the back instead of the 11 cm a
+ * strip-shaped island allowed. The skin textures keep sampling TEXCOORD_0, and the
+ * cloth maps stay in that space too.
+ *
  * Per pixel:
- *  1. transform the skin UV into each tattoo's local square
+ *  1. transform the ink UV into each tattoo's local square
  *  2. sample the ink density atlas (only if the pixel belongs to that region)
  *  3. multiply the ink into the skin albedo (ink sits *under* the skin)
  * plus a soft region highlight driven by a mask texture.
@@ -63,12 +69,15 @@ export interface SkinMaterialOptions {
 }
 
 export const INK_VERT_PARS = /* glsl */ `
+attribute vec2 inkUv;
 varying vec2 vInkUv;
+varying vec2 vSkinUv;
 `;
 
 const INK_FRAG_PARS = /* glsl */ `
 #define INK_MAX ${MAX_TATTOOS}
 varying vec2 vInkUv;
+varying vec2 vSkinUv;
 uniform sampler2D uInkAtlas;
 uniform sampler2D uRegionIds;
 uniform sampler2D uHighlightMask;
@@ -183,7 +192,7 @@ export function createSkinMaterial(options: SkinMaterialOptions): SkinMaterialRe
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', `#include <common>\n${INK_VERT_PARS}`)
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvInkUv = uv;');
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvInkUv = inkUv;\nvSkinUv = uv;');
 
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>\n${INK_FRAG_PARS}`)
@@ -206,10 +215,10 @@ export function createSkinMaterial(options: SkinMaterialOptions): SkinMaterialRe
         }
         float clothMask = 0.0;
         if (uClothEnabled > 0.5) {
-          float cw = texture2D(uCloth, vInkUv).r;
+          float cw = texture2D(uCloth, vSkinUv).r;
           clothMask = smoothstep(0.30, 0.58, cw);
           if (clothMask > 0.001) {
-            float weave = 0.94 + 0.06 * sin(vInkUv.x * 1450.0) * sin(vInkUv.y * 1450.0);
+            float weave = 0.94 + 0.06 * sin(vSkinUv.x * 1450.0) * sin(vSkinUv.y * 1450.0);
             vec3 fabric = vec3(0.030, 0.032, 0.035) * weave;
             fabric += vec3(0.02) * clothMask * smoothstep(0.4, 1.0, cw);
             diffuseColor.rgb = mix(diffuseColor.rgb, fabric, clothMask);
@@ -239,7 +248,7 @@ export function createSkinMaterial(options: SkinMaterialOptions): SkinMaterialRe
       );
   };
 
-  material.customProgramCacheKey = () => `inkverse-skin-v5-${options.regionIds ? 'r' : 'n'}`;
+  material.customProgramCacheKey = () => `inkverse-skin-v6-${options.regionIds ? 'r' : 'n'}`;
 
   const setInk = (slots: InkSlot[]) => {
     const count = Math.min(slots.length, MAX_TATTOOS);

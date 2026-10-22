@@ -35,7 +35,6 @@ precision highp float;
 precision highp int;
 precision highp sampler2D;
 out vec4 outColor;
-varying vec2 vInkUv;
 
 float uHighlightStrength;
 
@@ -68,6 +67,12 @@ const checks = [
   ['inkDensity declared before the emissive injection uses it', at('float inkDensity = 0.0;') < at('uInkColor * inkDensity')],
   ['inkHighlight declared before the emissive injection uses it', at('float inkHighlight = 0.0;') < at('* inkHighlight * 0.08')],
   ['mirror flip happens before the tile bounds test', at('uInkMirror[i] > 0.5') < at('return 0.0;')],
+  // The ink layer must sample the dedicated ink UV set (TEXCOORD_1), not the skin
+  // UVs: the skin unwrap is a snake on the torso and caps back pieces at ~11 cm.
+  ['ink is sampled with the dedicated ink UV attribute', /vInkUv = inkUv;/.test(src)],
+  ['the ink UV attribute is declared for the vertex stage', /attribute vec2 inkUv;/.test(src)],
+  // Cloth maps are authored in the skin (TEXCOORD_0) space and must stay there.
+  ['cloth keeps sampling the skin UV set', /texture2D\(uCloth, vSkinUv\)/.test(src)],
 ];
 let ok = true;
 for (const [label, pass] of checks) {

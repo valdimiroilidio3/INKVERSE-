@@ -293,6 +293,107 @@ shader path is proven by rendering the same maths on the same atlas pixels, not 
 looking at the canvas. The back zones remain limited to roughly an 11 cm piece — that
 is the atlas layout in the source asset, not a placement bug, and is listed below.
 
+## 5a. The structural fix for back coverage — a dedicated ink UV set
+
+The back could never hold a big piece because of the *shape of the chart*, not the maths.
+Measured on the male body, `upper-back` was one UV island whose bounding box is 1.25 × 0.90 m
+while it carries 0.087 m² of skin — 8 % fill, a snake threaded through the atlas. A square
+piece must fit entirely inside the zone (the region gate clips everything else), so the zone
+allowed an 11.3 cm square no matter how placement rounded it.
+
+`tools/assets/ink_uv.py` now builds a second UV set (glTF `TEXCOORD_1`, attribute `inkUv`):
+
+* the four torso zones are re-cast as **one chart each**, unrolling the real cross-section:
+  per height band the script fits the ellipse of the torso ring and integrates its perimeter,
+  so `u` is true arc length in metres and `v` is height. `upper-back` stops being a snake and
+  becomes a 0.35 × 0.37 m rectangle;
+* every other zone keeps its authored islands — they are already well shaped — but the
+  islands are shelf-packed into a compact cell instead of being left wherever the skin unwrap
+  put them;
+* all cells are packed into one atlas at a uniform density (0.41 UV/m) with 12 mm gutters, so
+  a square on the skin is a square in UV;
+* **the layout is chosen by measurement, not by assumption**: both candidates are rasterised
+  and the largest square that fits each one is computed; the winner is the layout with the
+  bigger piece, and a candidate within 2 % of the best is preferred if its cell is smaller.
+  The male chest therefore keeps its authored island (21.4 cm beats 17.6 cm), while the upper
+  back switches to the unroll (20.2 cm beats 11.3 cm);
+* zone boundaries run through triangles, so those vertices are **duplicated per zone** at
+  export (`vertexCount` 14 517 → 15 281). Without the split the shader would interpolate
+  between two different cells and paint a streak across the boundary. Normals and TEXCOORD_0
+  are copied unchanged, so skin shading and the cloth maps are untouched.
+
+`TEXCOORD_0` is unchanged, so the skin albedo/normal/roughness and the garment keep sampling
+exactly where they did. `components/three/skin-material.ts` reads `inkUv` for the ink layer,
+the region id gate and the highlight mask, and `vSkinUv` for the garment.
+
+### Measured result — largest square piece per zone (cm)
+
+"Before" is HEAD's `regions.json` re-measured with the same local-density rule, so the two
+columns mean the same thing. Source: `region_metrics.py` + `ink-placement-probe.ts`.
+
+| zone | male before | male after | female before | female after |
+|---|---|---|---|---|
+| upper-back | 10.8 | **19.9** (1.84×) | 10.5 | **18.7** (1.78×) |
+| lower-back | 11.1 | **16.2** (1.46×) | 11.6 | **15.9** (1.37×) |
+| abdomen | 16.7 | **20.0** (1.20×) | 16.6 | **19.7** (1.19×) |
+| shoulder | 10.7 | **13.0** (1.21×) | 13.9 | **16.4** (1.18×) |
+| thigh | 31.8 | **40.1** (1.26×) | 31.7 | **33.5** (1.06×) |
+| chest | 20.0 | 17.9 (0.90×) | 20.8 | 21.1 (1.02×) |
+| arm / forearm / head | — | 1.00–1.05× | — | 1.00–1.01× |
+| hand | 8.8 | 8.4 (0.96×) | 9.0 | 8.6 (0.96×) |
+| leg | 28.4 | 28.1 (0.99×) | 28.6 | 27.7 (0.97×) |
+
+The one real regression is the male chest: the largest square now lands where the pectoral
+unwrap is densest, so the same UV square covers 2 cm less skin. It is bounded by the id
+raster used to measure it (1024² over a 2.42 m atlas = 2.4 mm per texel); raising that raster
+to 2048² would recover most of it at four times the bake cost. Everything at or below 17.9 cm
+— 22 of the 28 catalogue designs — is unaffected on that zone.
+
+### Two measurement defects found on the way
+
+1. **The reported size was not the drawn size.** `uvPerMeter` was the median over the whole
+   zone, but a piece sits at one spot. On the chest the local Jacobian is 26 % denser than the
+   zone median, so a piece advertised as 20.8 cm covered 16.5 cm of skin, and on the hands the
+   error was 40 %. `region_metrics.py` now measures the density inside the usable square and
+   prefers a square centred on the deepest interior point when it covers more skin.
+   `ink-placement-probe.ts` verifies the result on the mesh: every zone is within 3 % of the
+   stated size except the head (16 %).
+2. **One missing texel collapsed the answer.** The largest-inscribed-square DP is exact, so a
+   single empty texel on the corner of the best square dropped the reported piece by 20 %.
+   Single-texel pinholes are closed before measuring, which is also physically right: a 2 mm
+   speck in the gate is invisible on skin.
+
+### Verified without a GPU
+
+The sandbox has no WebGL context, so nothing here claims a visual check. What is executed:
+
+* `tools/checks/ink-uv-probe.mjs` reads the shipped GLB: `TEXCOORD_1` present and complete,
+  no vertex shared between two zone charts, no two charts overlapping in the atlas;
+* `tools/checks/ink-placement-probe.ts` runs the real placement maths against the real mesh:
+  every zone places its biggest piece inside its own usable square, and the mesh's own
+  Jacobian inside that piece matches the size `regions.json` promises within 3 %;
+* `tools/checks/check_shader.mjs` now also asserts the shader samples ink through `inkUv` and
+  keeps the garment on the skin UV set.
+
+### Compatibility
+
+`appliedTattoos` store `bodyRegion` + `offset` + `rotation` + `scale`, never UV coordinates,
+so saved compositions, share links and `localStorage` keep loading: the placement is recomputed
+from the regenerated `regions.json`. The visible change is that a piece which used to be
+silently shrunk by the old 11 cm ceiling now renders at its authored size. That is a bug fix,
+not a format change — no schema version bump was needed.
+
+### What is new in the pipeline
+
+* `tools/assets/ink_uv.py` — builds `uv1` + `ink-uv.json` (measured distortion per zone), and
+  refuses to run twice on an already-expanded mesh.
+* `tools/assets/export_glb.py` — writes `TEXCOORD_1`.
+* `tools/assets/bake_regions.py`, `region_metrics.py` — bake and measure in the ink UV space.
+* `tools/checks/ink-uv-probe.mjs` — reads the shipped GLB and fails if `TEXCOORD_1` is
+  missing (a stale GLB after `build_meshes.py`), if any vertex is shared between two zone
+  charts, or if two charts overlap in the atlas.
+* `npm run assets:models` = `build_meshes.py && ink_uv.py && export_glb.py`.
+
 ## 6. Remaining limitations
 
 1. Both characters share one base mesh and one UV layout; differentiation is morph-based, not sculpted.
@@ -301,14 +402,20 @@ is the atlas layout in the source asset, not a placement bug, and is listed belo
 4. Shadow map is 1024 px and baked contact shadows do not follow the body while it orbits.
 5. Textures are WebP; no KTX2/BC7, so mobile pays full decode cost.
 6. Tattoos are projected through region UV boxes; they do not wrap around silhouette edges.
-7. The back zones occupy a narrow strip of the shared UV atlas, capping a back piece at
-   ~11 cm. Fixing it means re-unwrapping the mesh, which changes every stored placement —
-   the same trade-off as raising the tattoo atlas to 4K (tiles grow 512 → 1024 px).
+7. Ink now has its own UV set (see §6a). The remaining size limits are anatomical, not
+   layout artefacts: the upper back allows a 20 cm square, bounded by how the zone narrows
+   towards the waist, and the chest a 21 cm square, bounded by the clavicle. A piece cannot
+   cross a zone boundary, because the region gate discards ink outside the zone.
+8. The id raster that gates ink is 1024² over a 2.42 m atlas — 2.4 mm per texel. A piece
+   that runs exactly into a zone border can gain or lose ~2 mm there.
+9. Chart seams (the branch cut of each torso unroll) are one triangle wide and sit on the
+   spine. Artwork that crosses the spine shows a 2–3 mm gap along that line.
 
 ## 7. Highest-value next steps
 
-1. Per-character height and proportion (Iris at ~1.72 m) so the studio's framing rule has to become
+1. A real split "compare" view rather than hiding ink — the studio still only toggles a layer.
+2. Per-character height and proportion (Iris at ~1.72 m) so the studio's framing rule has to become
    per-character — the contract already supports it.
-2. A real split "compare" view rather than hiding ink.
-3. KTX2 + Draco for the GLBs to cut first paint on mobile.
-4. Surface-following tattoo projection (geodesic rather than box UV) for sleeves and wraps.
+3. A geodesic (surface-following) ink chart for sleeves and full wraps: the current chart is a
+   developable strip, so a piece that wraps more than half the limb compresses near the seam.
+4. KTX2 + Draco for the GLBs to cut first paint on mobile.

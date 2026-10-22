@@ -59,7 +59,14 @@ export function CharacterModel({
   const bodyGeometry = useMemo(() => {
     const node = gltf.nodes.Body as THREE.Mesh | undefined;
     if (!node?.geometry) throw new Error('Character model is missing its body mesh');
-    return node.geometry as THREE.BufferGeometry;
+    const geometry = node.geometry as THREE.BufferGeometry;
+    // The ink shader reads its own UV set through a dedicated `inkUv` attribute.
+    // Using TEXCOORD_1 directly would make three emit an unused `uv1` varying for
+    // the PBR maps; a named attribute keeps the ink path explicit. Old GLBs without
+    // TEXCOORD_1 fall back to the skin UV so the stage never renders garbage.
+    const ink = geometry.getAttribute('uv1') ?? geometry.getAttribute('uv');
+    if (ink) geometry.setAttribute('inkUv', ink);
+    return geometry;
   }, [gltf]);
 
   const eyeGeometry = useMemo(() => {

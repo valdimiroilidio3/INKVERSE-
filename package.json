@@ -11,10 +11,10 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "assets:models": "python3 tools/assets/build_meshes.py && python3 tools/assets/export_glb.py",
+    "assets:models": "python3 tools/assets/build_meshes.py && python3 tools/assets/ink_uv.py && python3 tools/assets/export_glb.py",
     "assets:textures": "python3 tools/assets/bake_textures.py",
     "assets:tattoos": "python3 tools/assets/tattoos_src.py && node tools/assets/rasterize.mjs",
-    "check": "npm run typecheck && npm run test && node tools/checks/check_shader.mjs",
+    "check": "npm run typecheck && npm run test && node tools/checks/check_shader.mjs && node tools/checks/ink-uv-probe.mjs && npx tsx tools/checks/ink-placement-probe.ts",
     "assets:regions": "python3 tools/assets/bake_regions.py && python3 tools/assets/region_metrics.py",
     "assets:editorial": "python3 tools/assets/render_editorial.py all"
   },

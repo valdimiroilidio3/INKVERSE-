@@ -181,8 +181,9 @@ def classify(pos, kind):
     rest = lab == 0
     lab[rest & (y > 1.27) & (z > 0.0)] = ID_INDEX["chest"]
     lab[rest & (y > 1.27) & (z <= 0.0)] = ID_INDEX["upper-back"]
-    lab[rest & (y <= 1.27) & (y > 1.0) & (z > 0.0) & ~groin] = ID_INDEX["abdomen"]
-    lab[rest & (y <= 1.27) & (y > 1.0) & (z <= 0.0) & ~groin] = ID_INDEX["lower-back"]
+    torso_width = (np.abs(x) < 0.20) & (np.abs(x) > 1e-4)
+    lab[rest & (y <= 1.27) & (y > 1.0) & (z > 0.0) & ~groin & torso_width] = ID_INDEX["abdomen"]
+    lab[rest & (y <= 1.27) & (y > 1.0) & (z <= 0.0) & ~groin & torso_width] = ID_INDEX["lower-back"]
     return lab
 
 
@@ -235,8 +236,17 @@ def main():
     all_meta = {}
     for kind in ("male", "female"):
         d = np.load(os.path.join(HERE, f"{kind}.npz"))
-        pos, uv, tris = d["pos"], d["uv"], d["tris"]
-        vlab = classify(pos, kind)
+        pos, tris = d["pos"], d["tris"]
+        # TEXCOORD_1 is the ink UV set when the asset pipeline produced one: charts
+        # are per-zone cells, not the fragmented skin unwrap. The stored `zone`
+        # array is the authority then, because zone boundaries duplicate vertices
+        # and re-deriving labels from positions would lose that split.
+        if "uv1" in d.files:
+            uv = d["uv1"]
+            vlab = d["zone"].astype(np.int16)
+        else:
+            uv = d["uv"]
+            vlab = classify(pos, kind)
         reg = rasterize_regions(pos, uv, tris, vlab)
         print(f"[{kind}] labelled verts: {(vlab>0).mean()*100:.1f}%  texels: {(reg>0).mean()*100:.1f}%")
 

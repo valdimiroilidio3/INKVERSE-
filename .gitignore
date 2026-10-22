@@ -14,6 +14,7 @@ next-env.d.ts
 tools/assets/__pycache__/
 tools/assets/*.npy
 tools/assets/*.npz
+tools/assets/ink-uv.json
 
 # keep the base mesh: it is the CC0 input, referenced by ASSETS.md
 !tools/assets/base.obj
